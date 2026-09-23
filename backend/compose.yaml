@@ -1,0 +1,12 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      HTTP_ADDR: ":8080"
+      AGENT_MODE: mock
+      ALLOW_FIXTURES: "true"
+      MOCK_SCENARIO: "${MOCK_SCENARIO:-success}"
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+    stop_grace_period: 15s
