@@ -4,5 +4,4 @@ bin
 **/node_modules
 .env
 .venv
-**/.test-build
 *.exe

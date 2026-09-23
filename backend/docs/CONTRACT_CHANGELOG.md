@@ -21,7 +21,7 @@ Clarifications explicitly introduced by the master requirements:
 - Cancellation returns 202 while pending, or 200 for already/immediately cancelled. Completed/failed cancellation is 409. No extra public cancelling/degraded job status.
 - `capabilities.simulated` is always a boolean; true in mock, false in HTTP. SHAP can be unavailable without making the forecast unavailable.
 
-Python contract-only validation in `contracts/python/contract.py` reads these same components and implements the UTC alignment/default rules. It supersedes the baseline local-time alignment assumption without editing the external ML implementation. `python tools/generate_contract.py --check` detects drift in checked-in OpenAPI, Go mappings and TypeScript types.
+The future Python implementation must use the clarified UTC alignment/default rules. `python tools/generate_contract.py --check` detects drift in checked-in OpenAPI, Go mappings and TypeScript types.
 
 Canonical `api/openapi.yaml` uses JSON syntax, a valid YAML 1.2 representation. This makes the embedded offline viewer dependency-free. It remains the single OpenAPI schema consumed by validators and documentation. `tools/generate_contract.py` regenerates it together with boundary DTOs and TypeScript. No Swagger 2.0 document is maintained.
 

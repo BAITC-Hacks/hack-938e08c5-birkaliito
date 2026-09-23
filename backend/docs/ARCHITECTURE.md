@@ -32,4 +32,4 @@ Each admitted SSE connection has one cancellable polling goroutine and a channel
 
 Shutdown cancels local stream contexts and simulator workers, closes idle outbound connections and drains the HTTP server. It sends no cancellation to Python. Mock is disposable and loses state on restart. Python production deployment needs a persistent transactionally idempotent job registry, durable queue acceptance, append-only monotonic events, immutable results/manifests, cancellation flags and restartable checkpoints. Those responsibilities are intentionally not duplicated in Go.
 
-Architecture tests parse imports to enforce the direction of dependencies. Usecase tests use fake ports; handler tests use a fake usecase; adapter tests use local `httptest.Server`; integration tests start separate full Apps.
+The import direction was reviewed after cleanup: domain has no infrastructure imports; application depends on domain and its ports; handlers depend on use case interfaces; adapters implement ports; `app.New` wires the concrete dependencies. The separate test suite was removed at the user's request, so this boundary currently has no automated regression check.
