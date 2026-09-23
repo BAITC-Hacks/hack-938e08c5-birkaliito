@@ -107,9 +107,30 @@ func ValidateResult(r ForecastResult, req ForecastRequest, id string) error {
 	if r.ExplanationStatus != "llm" && r.ExplanationStatus != "template" && r.ExplanationStatus != "unavailable" {
 		return fail()
 	}
-	for _, w := range r.WeatherRuns {
+	if err:=ValidateProvenance(r.WeatherRuns,r.ForecastOrigin,r.DataMode);err!=nil{return err}
+	if r.DataMode == "real" && (strings.Contains(r.ModelVersion, "fixture") || strings.Contains(r.FeatureVersion, "fixture")) {
+		return fail()
+	}
+	if r.DataMode == "fixture" && (r.ModelVersion != "fixture-not-trained" || !strings.HasPrefix(r.FeatureVersion, "fixture") || len(r.Warnings) == 0) {
+		return fail()
+	}
+	if len(r.Points) != len(req.TurbineIDs)*req.HorizonHours { return fail() }
+	seen := map[[2]int]bool{}
+	for _, p := range r.Points {
+		key := [2]int{p.TurbineID, p.LeadHours}
+		if seen[key] || !slices.Contains(req.TurbineIDs, p.TurbineID) || p.LeadHours < 1 || p.LeadHours > req.HorizonHours { return fail() }
+		seen[key] = true
+		if !p.ValidTime.Equal(req.ForecastOrigin.Add(time.Duration(p.LeadHours)*time.Hour)) || !p.IntervalEnd.Equal(p.ValidTime.Add(time.Hour)) { return fail() }
+		for _, n := range []float64{p.PowerMean, p.Q10, p.Q50, p.Q90} { if math.IsNaN(n) || math.IsInf(n, 0) { return fail() } }
+		if p.Q10 > p.Q50 || p.Q50 > p.Q90 { return fail() }
+	}
+	return nil
+}
+func ValidateProvenance(runs []WeatherProvenance,origin time.Time,dataMode string)error{
+	fail:=func()error{return Violation("Invalid weather provenance or historical availability")}
+	for _, w := range runs {
 		hashOK, _ := regexp.MatchString(`^[a-f0-9]{64}$`, w.ContentSHA256)
-		if w.Provider != "GFS" || w.RunID == "" || w.SourceReference == "" || !hashOK || w.InitializationTime.IsZero() || w.RetrievedAt.IsZero() || w.InitializationTime.After(w.EffectiveAvailableAt) || w.EffectiveAvailableAt.After(r.ForecastOrigin) {
+		if w.Provider != "GFS" || w.RunID == "" || w.SourceReference == "" || !hashOK || w.InitializationTime.IsZero() || w.EffectiveAvailableAt.IsZero() || w.RetrievedAt.IsZero() || w.InitializationTime.After(w.EffectiveAvailableAt) || w.EffectiveAvailableAt.After(origin) {
 			return fail()
 		}
 		if w.AvailabilityBasis != "observed_publication" && w.AvailabilityBasis != "conservative_policy" {
@@ -118,39 +139,18 @@ func ValidateResult(r ForecastResult, req ForecastRequest, id string) error {
 		if w.AvailabilityBasis == "conservative_policy" && (w.AvailabilityPolicyID == nil || strings.TrimSpace(*w.AvailabilityPolicyID) == "") {
 			return fail()
 		}
-		if r.DataMode == "real" && (strings.Contains(strings.ToLower(w.SourceReference), "fixture") || strings.HasPrefix(w.RunID, "fixture")) {
-			return fail()
-		}
-	}
-	if r.DataMode == "real" && (strings.Contains(r.ModelVersion, "fixture") || strings.Contains(r.FeatureVersion, "fixture")) {
-		return fail()
-	}
-	if r.DataMode == "fixture" && (r.ModelVersion != "fixture-not-trained" || !strings.HasPrefix(r.FeatureVersion, "fixture") || len(r.Warnings) == 0) {
-		return fail()
-	}
-	if len(r.Points) != len(req.TurbineIDs)*req.HorizonHours {
-		return fail()
-	}
-	seen := map[[2]int]bool{}
-	for _, p := range r.Points {
-		key := [2]int{p.TurbineID, p.LeadHours}
-		if seen[key] || !slices.Contains(req.TurbineIDs, p.TurbineID) || p.LeadHours < 1 || p.LeadHours > req.HorizonHours {
-			return fail()
-		}
-		seen[key] = true
-		if !p.ValidTime.Equal(req.ForecastOrigin.Add(time.Duration(p.LeadHours)*time.Hour)) || !p.IntervalEnd.Equal(p.ValidTime.Add(time.Hour)) {
-			return fail()
-		}
-		for _, n := range []float64{p.PowerMean, p.Q10, p.Q50, p.Q90} {
-			if math.IsNaN(n) || math.IsInf(n, 0) {
-				return fail()
-			}
-		}
-		if p.Q10 > p.Q50 || p.Q50 > p.Q90 {
+		if dataMode == "real" && (strings.Contains(strings.ToLower(w.SourceReference), "fixture") || strings.HasPrefix(w.RunID, "fixture")) {
 			return fail()
 		}
 	}
 	return nil
+}
+func ValidateWeather(w WeatherDetails,q ForecastRequest,id string)error{
+ if w.RunID!=id||w.DataMode!=q.DataMode{return Violation("Wrong weather identity or data mode")}
+ if w.Status=="unavailable"{if len(w.Points)>0{return Violation("Unavailable weather cannot contain points")};return nil}
+ if w.Status!="available"||len(w.WeatherRuns)==0{return Violation("Missing weather provenance")}
+ if e:=ValidateProvenance(w.WeatherRuns,q.ForecastOrigin,q.DataMode);e!=nil{return e}
+ seen:=map[[2]int64]bool{};for _,p:=range w.Points{gap:=p.ValidTime.Sub(q.ForecastOrigin);if !slices.Contains(q.TurbineIDs,p.TurbineID)||gap<time.Hour||gap>time.Duration(q.HorizonHours)*time.Hour||gap%time.Hour!=0{return Violation("Weather point outside forecast request")};key:=[2]int64{int64(p.TurbineID),int64(gap/time.Hour)};if seen[key]{return Violation("Repeated weather point")};seen[key]=true;for _,n:=range []*float64{p.WindSpeedMS,p.WindHeightM,p.TemperatureC}{if n!=nil&&(math.IsNaN(*n)||math.IsInf(*n,0)){return Violation("Nonfinite weather point")}}};return nil
 }
 func ValidateEvents(events []AgentEvent, id string, after int64) error {
 	for _, e := range events {

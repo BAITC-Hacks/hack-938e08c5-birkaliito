@@ -2,6 +2,8 @@
 
 This document is a handoff, not a claim that the Python service already implements these endpoints. Go's `AGENT_MODE=http` adapter uses one shared configured client and never owns real job state.
 
+`contracts/python/contract.py` is a contract-only runtime helper reading the same canonical OpenAPI. It applies request defaults and UTC normalization and checks forecast cross-field invariants. It contains no model or worker implementation. Install `contracts/python/requirements.txt` in a local venv and run `python -m unittest discover -s contracts/python -v` to validate the shared fixture suite. The actual Python service must integrate equivalent checks at its boundary.
+
 ## Routes and transport
 
 The suffix of each business route moves from public `/api` to private `/internal/v1`:

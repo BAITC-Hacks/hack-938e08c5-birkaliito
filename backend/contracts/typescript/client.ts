@@ -4,6 +4,8 @@ export class ApiException extends Error {
   constructor(public readonly status: number, public readonly detail: ApiError) { super(detail.message); }
 }
 export type Query = Record<string, string | number | boolean | undefined>;
+export type Pagination = { limit?: number; cursor?: string };
+export type ForecastFilters = Pagination & { forecast_origin_from?: string; forecast_origin_to?: string; turbine_id?: 1 | 2; status?: JobRecord['status']; data_mode?: ForecastRequest['data_mode'] };
 export interface Subscription { close(): void }
 export interface EventCallbacks {
   onEvent(event: AgentEvent): void;
@@ -39,7 +41,7 @@ export class WindClient {
   listTurbines(signal?: AbortSignal) { return this.get<TurbineList>('/api/turbines', signal); }
   listModels(signal?: AbortSignal) { return this.get<ModelList>('/api/models', signal); }
   createForecast(request: ForecastRequest, idempotencyKey: string, signal?: AbortSignal) { return this.post<JobRecord>('/api/forecast-runs', request, idempotencyKey, signal); }
-  listForecasts(query: Query = {}, signal?: AbortSignal) { return this.get<ForecastList>('/api/forecast-runs', signal, query); }
+  listForecasts(query: ForecastFilters = {}, signal?: AbortSignal) { return this.get<ForecastList>('/api/forecast-runs', signal, query); }
   getForecastDetails(id: string, signal?: AbortSignal) { return this.get<ForecastRunDetails>(`/api/forecast-runs/${encodeURIComponent(id)}`, signal); }
   getJob(id: string, signal?: AbortSignal) { return this.get<JobRecord>(`/api/jobs/${encodeURIComponent(id)}`, signal); }
   getResult(id: string, signal?: AbortSignal) { return this.get<ForecastResult>(`/api/forecast-runs/${encodeURIComponent(id)}/result`, signal); }
@@ -50,7 +52,7 @@ export class WindClient {
   listReplayRuns(id: string, signal?: AbortSignal) { return this.get<JobRecord[]>(`/api/replays/${encodeURIComponent(id)}/runs`, signal); }
   getWeather(id: string, signal?: AbortSignal) { return this.get<WeatherDetails>(`/api/forecast-runs/${encodeURIComponent(id)}/weather`, signal); }
   getExplanation(id: string, signal?: AbortSignal) { return this.get<ExplanationDetails>(`/api/forecast-runs/${encodeURIComponent(id)}/explanation`, signal); }
-  listEvaluations(query: Query = {}, signal?: AbortSignal) { return this.get<EvaluationList>('/api/evaluations', signal, query); }
+  listEvaluations(query: Pagination = {}, signal?: AbortSignal) { return this.get<EvaluationList>('/api/evaluations', signal, query); }
   getEvaluation(id: string, signal?: AbortSignal) { return this.get<EvaluationReport>(`/api/evaluations/${encodeURIComponent(id)}`, signal); }
   getDataQuality(signal?: AbortSignal) { return this.get<DataQualityReport>('/api/data-quality', signal); }
   async exportForecast(id: string, signal?: AbortSignal) { return (await this.response(`/api/forecast-runs/${encodeURIComponent(id)}/export`, { signal })).blob(); }

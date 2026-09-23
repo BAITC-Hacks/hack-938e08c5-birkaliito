@@ -208,7 +208,7 @@ func (a *Adapter) Models(ctx context.Context) (domain.ModelList, error) {
 		return domain.ModelList{}, e
 	}
 	for _, m := range v.Items {
-		if m.DataMode != "real" || strings.Contains(m.ModelVersion, "fixture") {
+		if m.DataMode != "real" || strings.Contains(m.ModelVersion, "fixture") || m.TrainingDataAvailableThrough.IsZero() {
 			return domain.ModelList{}, domain.Violation("Real model catalog contains fixtures")
 		}
 	}
@@ -377,6 +377,7 @@ func (a *Adapter) ReplayDetails(ctx context.Context, id string) (domain.ReplayDe
 		return domain.ReplayDetails{}, e
 	}
 	d := ReplayDetailsToDomain(v)
+	if _,e=domain.NormalizeReplay(d.Request);e!=nil{return d,domain.Violation("Invalid replay request metadata")}
 	c := d.Counters
 	if d.Job.JobID != id || d.Job.JobType != "replay" || d.Request.DataMode != "real" || c.Total != len(d.Request.Origins) || c.Total != c.Queued+c.Running+c.Completed+c.Failed+c.Cancelled || d.HasFailures != (c.Failed > 0) {
 		return d, domain.Violation("Invalid replay metadata or counters")
@@ -446,9 +447,10 @@ func (a *Adapter) Explanation(ctx context.Context, id string) (domain.Explanatio
 	return ExplanationDetailsToDomain(v), nil
 }
 func validateEvaluation(r domain.EvaluationReport) error {
-	if r.DataMode != "real" || !r.PeriodStart.Before(r.PeriodEnd) || r.TrainingDataAvailableThrough.After(r.PeriodStart) {
+	if r.DataMode != "real" || r.PeriodStart.IsZero() || r.PeriodEnd.IsZero() || r.TrainingDataAvailableThrough.IsZero() || !r.PeriodStart.Before(r.PeriodEnd) || r.TrainingDataAvailableThrough.After(r.PeriodStart) {
 		return domain.Violation("Invalid evaluation provenance")
 	}
+	if r.Status=="unavailable"&&r.NObservations!=nil{return domain.Violation("Unavailable observation count must be null")}
 	for _, m := range r.Metrics {
 		if m.LeadFrom > m.LeadTo {
 			return domain.Violation("Invalid metric horizon")
