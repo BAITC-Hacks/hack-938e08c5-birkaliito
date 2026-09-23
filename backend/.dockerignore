@@ -1,0 +1,7 @@
+.git
+bin
+.cache
+**/node_modules
+.env
+.venv
+*.exe
