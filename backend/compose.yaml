@@ -1,4 +1,14 @@
 services:
+  frontend:
+    build: ../design
+    ports:
+      - "4173:4173"
+    environment:
+      HTTP_ADDR: ":4173"
+      BACKEND_URL: "http://backend:8080"
+    depends_on:
+      - backend
+
   backend:
     build: .
     ports:
@@ -9,7 +19,7 @@ services:
       ALLOW_FIXTURES: "false"
       PYTHON_BASE_URL: "http://ml:8000"
       PYTHON_INTERNAL_TOKEN: "secret_token_123"
-      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      CORS_ALLOWED_ORIGINS: http://localhost:4173,http://127.0.0.1:4173
     stop_grace_period: 15s
     depends_on:
       - ml
