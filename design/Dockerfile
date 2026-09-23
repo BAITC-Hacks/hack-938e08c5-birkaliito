@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN go build -o aura main.go
+RUN go mod init aura && go mod tidy && go build -o aura .
 
 EXPOSE 4173
 
