@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Wind Forecast API",
-    "version": "1.1.0",
-    "description": "All output timestamps UTC. lead=1..H; valid_time=origin+lead hours; interval_end=valid_time+1 hour. Normalization and SCADA timezone unconfirmed. Mock is explicitly fixture and volatile. Whole-hour alignment is checked after UTC normalization. Cross-field invariants are checked by domain validation. Forecast IDs equal job IDs; replay IDs equal job IDs."
+    "version": "1.2.0",
+    "description": "All output timestamps UTC. lead=1..H; valid_time=origin+lead hours; interval_end=valid_time+1 hour. q50 is null when the model has no calibrated median estimate; power_mean remains available. Normalization status is reported by /api/meta. Mock is explicitly fixture and volatile. Whole-hour alignment is checked after UTC normalization. Cross-field invariants are checked by domain validation. Forecast IDs equal job IDs; replay IDs equal job IDs."
   },
   "paths": {
     "/healthz": {
@@ -4563,7 +4563,14 @@
             "type": "number"
           },
           "q50": {
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "q90": {
             "type": "number"

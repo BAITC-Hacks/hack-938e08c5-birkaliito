@@ -129,12 +129,15 @@ func ValidateResult(r ForecastResult, req ForecastRequest, id string) error {
 		if !p.ValidTime.Equal(req.ForecastOrigin.Add(time.Duration(p.LeadHours)*time.Hour)) || !p.IntervalEnd.Equal(p.ValidTime.Add(time.Hour)) {
 			return fail()
 		}
-		for _, n := range []float64{p.PowerMean, p.Q10, p.Q50, p.Q90} {
+		for _, n := range []float64{p.PowerMean, p.Q10, p.Q90} {
 			if math.IsNaN(n) || math.IsInf(n, 0) {
 				return fail()
 			}
 		}
-		if p.Q10 > p.Q50 || p.Q50 > p.Q90 {
+		if p.Q10 > p.Q90 {
+			return fail()
+		}
+		if p.Q50 != nil && (math.IsNaN(*p.Q50) || math.IsInf(*p.Q50, 0) || p.Q10 > *p.Q50 || *p.Q50 > p.Q90) {
 			return fail()
 		}
 	}

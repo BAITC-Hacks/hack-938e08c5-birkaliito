@@ -1,5 +1,9 @@
 # Contract changelog
 
+## 1.2.0 — ML bridge compatibility
+
+`ForecastPoint.q50` remains a required JSON field but may be `null` when a model does not produce a calibrated median. The merged XGBoost model publishes a point prediction (`power_mean`) and a residual-calibrated 10–90% band (`q10`, `q90`); treating its point prediction as `q50` would mislabel a mean as a median. CSV leaves the q50 cell empty in this case. Frontends should draw the mean line and available interval, and only show a median line when q50 is numeric. Go DTOs and TypeScript types are regenerated from the updated OpenAPI. The public routes and other fields are unchanged.
+
 ## 1.1.0 — backend implementation and agreed extensions
 
 Baseline: `Downloads/wind_backend_handoff/baseline_contracts/`, OpenAPI 3.1.0 contract 1.0.0 and its Go/TypeScript/Pydantic transport types. Existing `/api/...` paths and successful object/array shapes are preserved. No `/api/v1` migration and no response envelope.

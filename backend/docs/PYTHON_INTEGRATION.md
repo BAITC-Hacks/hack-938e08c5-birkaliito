@@ -46,7 +46,7 @@ Failed child jobs prevent a completed replay. Terminal parent metadata and child
 
 ## Historical policy
 
-Lead hours are 1..H, valid_time is interval start, interval_end is one hour later. Normalize timestamps to UTC **before** checking whole-hour origins. Every expected turbine/lead pair appears exactly once. Required q10/q50/q90 must be finite and ordered; Go never fabricates missing quantiles or clips model values.
+Lead hours are 1..H, valid_time is interval start, interval_end is one hour later. Normalize timestamps to UTC **before** checking whole-hour origins. Every expected turbine/lead pair appears exactly once. q10 and q90 must be finite and ordered; q50 is a required nullable field and must be finite and ordered when available. Go never fabricates missing quantiles or clips model values.
 
 Check `initialization_time <= effective_available_at <= forecast_origin` and `training_data_available_through <= forecast_origin`. `retrieved_at` is actual retrieval time and may be later. Conservative availability requires a policy ID. Real mode forbids fixture sources/versions. Future weather must be original archived forecasts actually available at the simulated issue time, not reanalysis or later observations. Main replay uses no newly arriving February SCADA targets, wind or temperature.
 
