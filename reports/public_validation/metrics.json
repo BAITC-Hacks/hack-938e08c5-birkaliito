@@ -1,0 +1,224 @@
+{
+  "evaluation_type": "retrospective spatial transfer, NOT an operational 2024 backtest",
+  "source": {
+    "source": "https://zenodo.org/records/16807551",
+    "license": "CC BY 4.0",
+    "authors": "Charlie Plumley and Roberta Takeuchi / Cubico",
+    "archive": "Kelmarsh_SCADA_2024_5962.zip",
+    "member": "Turbine_Data_Kelmarsh_1_2024-01-01_-_2025-01-01_228.csv",
+    "member_crc32": "8cc72d2e",
+    "member_crc_checked_by_zipfile": true,
+    "metadata": [
+      "# This file was exported by Greenbyte at 2025-08-11 14:43:27. Please see https://www.greenbyte.com for more information about Greenbyte.",
+      "#",
+      "# Turbine: Kelmarsh 1",
+      "# Turbine type: Senvion MM92",
+      "# Time zone: UTC",
+      "# Time interval: 2024-01-01 00:00:00 - 2025-01-01 00:00:00 (366 days)",
+      "#",
+      "# Data that is missing or is erroneous has been marked with the value \"NaN\"",
+      "#"
+    ],
+    "selected_columns": [
+      "# Date and time",
+      "Wind speed (m/s)",
+      "Power (kW)",
+      "Nacelle ambient temperature (\u00b0C)"
+    ],
+    "records": 2174904,
+    "selected_sha256": "935e702e1a63bf6c8223f6b52cc7c3901ac4f08c8729494bd27550200d0ef894",
+    "retrieved_at": "2026-09-23T09:53:50.716789+00:00"
+  },
+  "weather_source": "https://open-meteo.com/en/docs/previous-runs-api",
+  "test_period_utc": [
+    "2024-01-01 00:00:00+00:00",
+    "2025-01-01 00:00:00+00:00"
+  ],
+  "end_exclusive": true,
+  "model_path": "artifacts\\improved\\model.joblib",
+  "model_sha256_before": "f8f64113b07d751103c8aaac138d45d4b1633ba33f31d1bdea93e533913341c0",
+  "model_sha256_after": "f8f64113b07d751103c8aaac138d45d4b1633ba33f31d1bdea93e533913341c0",
+  "model_training_max_valid_time": "2026-01-31 17:00:00+00:00",
+  "model_refit_or_selection_on_external_data": false,
+  "config_for_external_test": {
+    "timezone": "Europe/London",
+    "timezone_confirmed": true,
+    "history": {
+      "max_age_hours": 3,
+      "min_samples_24h": 12
+    },
+    "min_samples_per_hour": 6,
+    "weather_model": "gfs_global",
+    "weather_publication_delay_hours": 6,
+    "turbines": [
+      {
+        "id": 1,
+        "latitude": 52.400604,
+        "longitude": -0.947133,
+        "rated_power_mw": 2.05
+      }
+    ]
+  },
+  "turbine_id_mapping": "Kelmarsh 1 -> existing Kazakh turbine_id=1 (unadapted transfer assumption)",
+  "nominal_power_kw": 2050,
+  "normalization": "clip(mean_hourly_active_power_kw / 2050, 0, 1)",
+  "time_alignment": "SCADA timestamps assumed interval starts; completed hour usable one hour later",
+  "issuance": "daily 23:00 UTC; horizons 1..48 hours; calendar features Europe/London",
+  "weather_protocol": "GFS previous_day2/day3; conservative 6h publication allowance; no exact run IDs",
+  "planned_forecast_rows": 17568,
+  "scored_rows": 15222,
+  "first_scored_target": "2024-02-17 06:00:00+00:00",
+  "last_scored_target": "2024-12-31 23:00:00+00:00",
+  "unique_target_hours": 7623,
+  "scored_fraction_of_full_year": 0.8664617486338798,
+  "weather_rows_with_any_missing_variable": 2292,
+  "quality": {
+    "source_rows": 2174904,
+    "unique_timestamps": 52704,
+    "duplicate_timestamp_rows": 2122200,
+    "rows_with_all_selected_signals_missing": 2122330,
+    "conflicting_duplicates": 0,
+    "complete_power_hours": 8757,
+    "incomplete_power_hours": 27,
+    "negative_power_hours_clipped": 637,
+    "over_rated_power_hours_clipped": 38,
+    "hourly_raw_normalized_min": -0.0029579568585244636,
+    "hourly_raw_normalized_max": 1.0041686411291615
+  },
+  "metrics": {
+    "current_blend": {
+      "mae": 0.14942994103362067,
+      "rmse": 0.18974367158529884,
+      "r2": 0.5305636323767293
+    },
+    "weather_only": {
+      "mae": 0.15341440548400656,
+      "rmse": 0.19319979748703353,
+      "r2": 0.5133065904709961
+    }
+  },
+  "baseline_common_rows": {
+    "rows": 15030,
+    "current_blend": {
+      "mae": 0.14897646966007186,
+      "rmse": 0.18891509396652512,
+      "r2": 0.5295192484183433
+    },
+    "persistence": {
+      "mae": 0.20807375353848948,
+      "rmse": 0.2910294939640812,
+      "r2": -0.1165612488254737
+    },
+    "blend_mae_skill_vs_persistence": 0.2840208477687014
+  },
+  "unclipped_target_metrics": {
+    "mae": 0.14948032899593167,
+    "rmse": 0.18978535036240607,
+    "r2": 0.5305450779553329
+  },
+  "by_horizon": [
+    {
+      "day": 1,
+      "rows": 7623,
+      "mae": 0.14159020461007685,
+      "rmse": 0.1776170093275309,
+      "r2": 0.5886014179314571
+    },
+    {
+      "day": 2,
+      "rows": 7599,
+      "mae": 0.15729443777749155,
+      "rmse": 0.2011755194790441,
+      "r2": 0.47235565815310854
+    }
+  ],
+  "by_month": [
+    {
+      "month": "2024-02",
+      "rows": 588,
+      "mae": 0.1856540433938277,
+      "rmse": 0.23999878408451453,
+      "r2": 0.38480939803630465
+    },
+    {
+      "month": "2024-03",
+      "rows": 1480,
+      "mae": 0.19049977886222313,
+      "rmse": 0.24820989425054285,
+      "r2": 0.17787624583732486
+    },
+    {
+      "month": "2024-04",
+      "rows": 1440,
+      "mae": 0.1575332081209067,
+      "rmse": 0.20037218916952196,
+      "r2": 0.5817677002466715
+    },
+    {
+      "month": "2024-05",
+      "rows": 1476,
+      "mae": 0.13915672897437179,
+      "rmse": 0.16472710941304164,
+      "r2": 0.2210034773861813
+    },
+    {
+      "month": "2024-06",
+      "rows": 1440,
+      "mae": 0.136508092067674,
+      "rmse": 0.16515588870321188,
+      "r2": 0.22095842375025365
+    },
+    {
+      "month": "2024-07",
+      "rows": 1466,
+      "mae": 0.14029702069451397,
+      "rmse": 0.17186554262579354,
+      "r2": -0.11857646270902733
+    },
+    {
+      "month": "2024-08",
+      "rows": 1488,
+      "mae": 0.14271755300008265,
+      "rmse": 0.17568455239028813,
+      "r2": 0.5367884762912292
+    },
+    {
+      "month": "2024-09",
+      "rows": 1440,
+      "mae": 0.14294754070089816,
+      "rmse": 0.18574931880477125,
+      "r2": 0.39822870127495547
+    },
+    {
+      "month": "2024-10",
+      "rows": 1476,
+      "mae": 0.15255185725348186,
+      "rmse": 0.19159227385253763,
+      "r2": 0.2924162446574924
+    },
+    {
+      "month": "2024-11",
+      "rows": 1440,
+      "mae": 0.1435444093031873,
+      "rmse": 0.18337582828339605,
+      "r2": 0.589801433903192
+    },
+    {
+      "month": "2024-12",
+      "rows": 1488,
+      "mae": 0.13370255875677498,
+      "rmse": 0.17259001369323215,
+      "r2": 0.7671592370310192
+    }
+  ],
+  "history_used_fraction": 0.9873866771777691,
+  "interval_80_coverage": 0.9460649060570228,
+  "interval_warning": "Intervals were calibrated on Kazakhstan, not Kelmarsh",
+  "limitations": [
+    "Different station, turbine type, terrain and normalization from the case",
+    "Only one external turbine; overlapping day-1/day-2 targets are not independent samples",
+    "Weights learned through Jan 2026: spatial transfer only, not a historical deployment claim",
+    "Original case power normalization formula/rated turbine powers remain unconfirmed"
+  ],
+  "created_at": "2026-09-23T09:56:41.675642+00:00"
+}

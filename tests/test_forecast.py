@@ -119,3 +119,18 @@ def test_agent_recomputes_only_changed_inputs(tmp_path, monkeypatch, config, wea
     assert run_agent(path, "2026-01-31T23:00", tmp_path / "agent")["status"] == "unchanged"
     weather.loc[0, "wind_speed_100m"] += 1
     assert run_agent(path, "2026-01-31T23:00", tmp_path / "agent")["status"] == "updated"
+
+
+def test_agent_tracks_known_scada_updates_but_ignores_future_rows(tmp_path, monkeypatch, config, weather):
+    from wind_forecast.agent import run_agent
+    path = tmp_path / "model.joblib"
+    joblib.dump(small_bundle(config, weather), path)
+    monkeypatch.setattr("wind_forecast.agent.fetch_archive", lambda *args, **kwargs: weather.copy())
+    hourly = pd.DataFrame({"valid_time": pd.to_datetime(["2026-01-31T17:00Z", "2026-01-31T18:00Z"]),
+                           "turbine_id": 1, "power": 0.4, "wind_speed": 6.0, "temperature": 10.0})
+    output = tmp_path / "scada_agent"
+    assert run_agent(path, "2026-01-31T23:00", output, hourly=hourly)["status"] == "updated"
+    hourly.loc[1, "power"] = 0.9
+    assert run_agent(path, "2026-01-31T23:00", output, hourly=hourly)["status"] == "unchanged"
+    hourly.loc[0, "power"] = 0.7
+    assert run_agent(path, "2026-01-31T23:00", output, hourly=hourly)["status"] == "updated"

@@ -1,5 +1,7 @@
 {
   "timezone": "Asia/Almaty",
+  "timezone_confirmed": true,
+  "history": {"max_age_hours": 3, "min_samples_24h": 12},
   "min_samples_per_hour": 6,
   "weather_model": "gfs_global",
   "weather_publication_delay_hours": 6,

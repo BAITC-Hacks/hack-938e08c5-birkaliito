@@ -40,13 +40,41 @@ def interval_offsets(frame, predictions):
     return result
 
 
-def predict_bundle(bundle, frame):
+def predict_details(bundle, frame, hourly=None):
     features = make_features(frame, bundle["config"]["timezone"])
     if list(features.columns) != bundle["features"]:
         raise ValueError("Feature schema does not match the trained model")
     predictions = np.clip(bundle["model"].predict(features), 0, 1)
+    used_history = np.zeros(len(frame), dtype=bool)
+    ages = np.full(len(frame), np.nan)
+    if bundle.get("history_model") is not None and bundle.get("use_history", True):
+        from .history import combine_features, history_features
+        history = history_features(hourly, frame, bundle["config"].get("history"))
+        extended = combine_features(features, frame, history)
+        if list(extended.columns) != bundle["history_features"]:
+            raise ValueError("History feature schema does not match trained model")
+        used_history = history.history_usable.to_numpy()
+        ages = history.history_age_hours.to_numpy()
+        if used_history.any():
+            weight = float(bundle.get("history_weight", 1.0))
+            if not 0 <= weight <= 1:
+                raise ValueError("History blend weight must be between 0 and 1")
+            history_prediction = np.clip(bundle["history_model"].predict(extended.loc[used_history]), 0, 1)
+            predictions[used_history] = (1 - weight) * predictions[used_history] + weight * history_prediction
     offsets = np.array([bundle["interval_offsets"][f"{int(t)}:{int(d)}"] for t, d in zip(frame.turbine_id, frame.forecast_offset_days)])
-    return predictions, np.clip(predictions + offsets[:, 0], 0, 1), np.clip(predictions + offsets[:, 1], 0, 1)
+    if used_history.any():
+        history_offsets = bundle.get("history_interval_offsets", bundle["interval_offsets"])
+        offsets[used_history] = [history_offsets[f"{int(t)}:{int(d)}"] for t, d in zip(frame.loc[used_history, "turbine_id"], frame.loc[used_history, "forecast_offset_days"])]
+    return pd.DataFrame({"prediction": predictions,
+                         "lower_80": np.clip(predictions + offsets[:, 0], 0, 1),
+                         "upper_80": np.clip(predictions + offsets[:, 1], 0, 1),
+                         "prediction_mode": np.where(used_history, "weather_and_history", "weather_only"),
+                         "history_age_hours": ages}, index=frame.index)
+
+
+def predict_bundle(bundle, frame, hourly=None):
+    details = predict_details(bundle, frame, hourly)
+    return tuple(details[column].to_numpy() for column in ("prediction", "lower_80", "upper_80"))
 
 
 def persistence_predictions(hourly, targets):
@@ -116,7 +144,7 @@ def train(hourly, weather, config, artifact_dir="artifacts", report_dir="reports
     for (turbine, day), group in test.groupby(["turbine_id", "forecast_offset_days"]):
         grouped.append({"turbine_id": int(turbine), "forecast_day": int(day - 1), "rows": len(group), **scores(group.power, group.prediction)})
     report = {
-        "timezone_assumption": config["timezone"], "weather_model": config["weather_model"],
+        "timezone_assumption": config["timezone"], "timezone_confirmed": config.get("timezone_confirmed", False), "weather_model": config["weather_model"],
         "target": "hourly normalized active power (0..1)", "train_validation_cutoffs_utc": {k: str(v) for k, v in boundaries.items()},
         "rows": {k: int(v.sum()) for k, v in masks.items()}, "validation_experiments": experiments,
         "chosen_parameters": best, "january_2026_test": metrics, "baselines": baseline_scores,
@@ -124,7 +152,7 @@ def train(hourly, weather, config, artifact_dir="artifacts", report_dir="reports
         "versions": {"python": platform.python_version(), "numpy": np.__version__, "pandas": pd.__version__, "sklearn": sklearn.__version__, "xgboost": xgboost.__version__},
         "limitations": [
             "No February targets supplied: February accuracy cannot be measured.",
-            "Timestamp timezone is an explicit assumption until confirmed by the data owner.",
+            "Timestamp timezone: " + ("confirmed by user." if config.get("timezone_confirmed") else "an explicit assumption until confirmed by the data owner."),
             "Previous Runs has fixed-lead forecasts; exact operational run IDs are unavailable.",
             "Availability is a conservative bound with a 6h publication allowance, not an observed publication timestamp.",
             "Intervals are empirical December residual bands, not a coverage guarantee after production refit.",
@@ -177,7 +205,7 @@ def plot_backtest(test, path, timezone):
 def write_report(report, path):
     metrics = report["january_2026_test"]
     lines = ["# Отчёт о модели ВЭС", "", "Проверка: январь 2026, исключённый из обучения и подбора параметров.", "",
-             f"Часовой пояс CSV: `{report['timezone_assumption']}` (допущение). Источник: архивные прогнозы GFS.", "",
+             f"Часовой пояс CSV: `{report['timezone_assumption']}` ({'подтверждён' if report.get('timezone_confirmed') else 'допущение'}). Источник: архивные прогнозы GFS.", "",
              f"MAE: **{metrics['mae']:.4f}**, RMSE: **{metrics['rmse']:.4f}**, R²: **{metrics['r2']:.4f}**.", "",
              "MAE измеряется в долях нормализованной мощности, а не в процентах от фактической выработки.", "",
              "| Модель | MAE | RMSE |", "|---|---:|---:|", f"| XGBoost | {metrics['mae']:.4f} | {metrics['rmse']:.4f} |"]

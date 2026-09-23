@@ -6,10 +6,10 @@ from pathlib import Path
 import pandas as pd
 
 from .features import as_utc, forecast_table
-from .model import predict_bundle
+from .model import predict_details
 
 
-def forecast(bundle, weather, issued_at, horizon=48):
+def forecast(bundle, weather, issued_at, horizon=48, hourly=None):
     config = bundle["config"]
     origin = as_utc(issued_at, config["timezone"])
     for key in ("training_max_valid_time", "calibration_max_valid_time"):
@@ -17,7 +17,9 @@ def forecast(bundle, weather, issued_at, horizon=48):
             raise ValueError(f"Model leakage: {key} contains targets unavailable at issuance")
     frame = forecast_table(weather, origin, horizon, config)
     result = frame[["issued_at", "valid_time", "turbine_id", "horizon_hours", "forecast_offset_days", "source_reference_time_upper_bound", "available_at_upper_bound", "weather_model"]].copy()
-    result["prediction"], result["lower_80"], result["upper_80"] = predict_bundle(bundle, frame)
+    details = predict_details(bundle, frame, hourly)
+    for column in details:
+        result[column] = details[column]
     result["local_time"] = result.valid_time.dt.tz_convert(config["timezone"])
     capacities = {t["id"]: t.get("rated_power_mw") for t in config["turbines"]}
     if all(value is not None and value > 0 for value in capacities.values()):
@@ -44,11 +46,14 @@ def aggregate_farm(frame, config):
 
 def analysis_report(frame):
     previous = frame.sort_values(["issued_at", "turbine_id", "valid_time"]).groupby(["issued_at", "turbine_id"]).prediction.diff().abs()
-    return {"rows": len(frame), "missing_predictions": int(frame.prediction.isna().sum()),
+    result = {"rows": len(frame), "missing_predictions": int(frame.prediction.isna().sum()),
             "min_prediction": float(frame.prediction.min()), "max_prediction": float(frame.prediction.max()),
             "mean_interval_width": float((frame.upper_80 - frame.lower_80).mean()),
             "ramps_over_0_35": int((previous > 0.35).sum()),
             "wide_intervals_over_0_7": int(((frame.upper_80 - frame.lower_80) > 0.7).sum())}
+    if "prediction_mode" in frame:
+        result["prediction_modes"] = {key: int(value) for key, value in frame.prediction_mode.value_counts().items()}
+    return result
 
 
 def save_forecast(frame, config, output_dir):
@@ -59,7 +64,7 @@ def save_forecast(frame, config, output_dir):
     (output / "analysis.json").write_text(json.dumps(analysis_report(frame), indent=2), encoding="utf-8")
 
 
-def replay(bundle, weather, start="2026-02-01", end="2026-02-28", output_dir="outputs/february"):
+def replay(bundle, weather, start="2026-02-01", end="2026-02-28", output_dir="outputs/february", hourly=None):
     config = bundle["config"]
     first = pd.Timestamp(start).normalize()
     last = pd.Timestamp(end).normalize()
@@ -69,7 +74,7 @@ def replay(bundle, weather, start="2026-02-01", end="2026-02-28", output_dir="ou
     for day in pd.date_range(first, last, freq="D"):
         origin = (day - pd.Timedelta(hours=1)).tz_localize(config["timezone"])
         # Last issue still produces 48h, including next month's first day.
-        frames.append(forecast(bundle, weather, origin, horizon=48))
+        frames.append(forecast(bundle, weather, origin, horizon=48, hourly=hourly))
     all_forecasts = pd.concat(frames, ignore_index=True)
     output = Path(output_dir)
     save_forecast(all_forecasts, config, output)
