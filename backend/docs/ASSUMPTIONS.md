@@ -1,0 +1,14 @@
+# Explicit assumptions and limits
+
+- The provided checkout contained only README; implementation lives under `backend/`. The handoff was located in `Downloads/wind_backend_handoff`. No existing ML/React directories were edited.
+- SCADA timezone, normalization definition, equipment rating and hub height are unconfirmed. Configured coordinates come from the handoff and are `configured_unverified`. These are not inferred from display timezone or synthetic values.
+- Go treats the supplied historical provenance as assertions to validate, not proof of weather authenticity. Python must retain original forecast sources, actual availability policy, checksums, training cutoffs and input manifests. No actual February observations are fetched by this backend.
+- Real protocol is proposed `/internal/v1`; there was no Python service or real artifact supplied. Adapter transport behavior is tested against local controlled servers. Actual CatBoost/LangGraph/GFS integration is unverified.
+- Mock fixture formula is deterministic from normalized origin/turbines/horizon and fixture version. Execution timestamps are real execution times. Subsequent GETs return the stored snapshot. Weather checksum covers the JSON weather points artifact with lexically sorted keys; source URI and run ID are explicitly fixture. No actual GFS download occurs.
+- Mock SHAP is unavailable; arbitrary feature scores are not presented as SHAP. Synthetic quality reports and audits are marked fixture. An unavailable metric example is included with null values.
+- In-memory mock jobs and idempotency records live until process exit or store capacity is reached. There is no TTL-based eviction. Both disappear together on restart. No unfinished job is evicted.
+- Replay reserves all children atomically. Queue size is an explicit admission limit, including for replay. Increase it to run all 366 origins at once; default 64 covers a daily February demo. Rejection leaves no partial parent or orphan children.
+- GET retries are limited to one retry on temporary dependency unavailability with a 25 ms context-aware delay within the overall timeout. POST is never automatically retried; callers repeat the same idempotency key after ambiguous transport failures.
+- Cursor order is stable but history membership may change when jobs transition status. Published forecast results and terminal replay exports remain immutable snapshots.
+- No auth system was requested. The default listener/compose binding is localhost; CORS is an explicit origin allowlist. Production fixture mode is rejected at startup.
+- Config is read once from environment. `.env.example` is documentation rather than an automatic secret loader. The docs viewer is deliberately local and simple; it renders the canonical operations/schemas without a CDN or Swagger 2.0 generation.

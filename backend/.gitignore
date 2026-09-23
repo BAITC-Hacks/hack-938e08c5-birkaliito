@@ -2,6 +2,8 @@
 /.cache/
 /coverage.out
 /.env
+/.venv/
+**/.test-build/
 **/node_modules/
 **/__pycache__/
 *.exe

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"slices"
 	"sync"
 	"time"
 	_ "time/tzdata"
@@ -69,7 +70,9 @@ func New(cfg Config) (*App, error) {
 		closeFn = a.Close
 	} else {
 		a, err := agenthttp.New(agenthttp.Config{BaseURL: cfg.PythonBaseURL, Token: cfg.PythonToken, Timeout: cfg.UpstreamTimeout, ResponseLimit: cfg.ResponseLimit}, v)
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 		fg, jg, er, rg, mc, ev, wr = a, a, a, a, a, a, a
 		closeFn = a.Close
 	}
@@ -84,7 +87,7 @@ func New(cfg Config) (*App, error) {
 	eval := evaluation.NewEvaluationService(ev, mc)
 	ctx, stop := context.WithCancel(context.Background())
 	input := handlers.Input{Validator: v, BodyLimit: cfg.BodyLimit}
-	router := httptransport.NewRouter(handlers.NewForecastHandler(f, input), handlers.NewJobHandler(j, cfg.PollInterval, cfg.Heartbeat, cfg.StreamWriteTimeout, cfg.MaxStreams, ctx), handlers.NewReplayHandler(r, input), handlers.NewCatalogHandler(c), handlers.NewEvaluationHandler(eval), log, cfg.CORS)
+	router := httptransport.NewRouter(handlers.NewForecastHandler(f, input), handlers.NewJobHandler(j, cfg.PollInterval, cfg.Heartbeat, cfg.StreamWriteTimeout, cfg.MaxStreams, ctx), handlers.NewReplayHandler(r, input), handlers.NewCatalogHandler(c), handlers.NewEvaluationHandler(eval), log, slices.Clone(cfg.CORS), ctx)
 	a := &App{Handler: router, Logger: log, stop: stop, close: closeFn}
 	a.Server = &http.Server{Addr: cfg.HTTPAddr, Handler: router, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 << 10}
 	return a, nil

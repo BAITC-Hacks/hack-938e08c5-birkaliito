@@ -1,0 +1,25 @@
+{
+  "agent_dependency": "available",
+  "agent_mode": "mock",
+  "allowed_data_modes": [
+    "fixture"
+  ],
+  "capabilities": {
+    "cancel": true,
+    "data_quality": true,
+    "evaluations": true,
+    "forecast": true,
+    "replay": true,
+    "shap": false,
+    "simulated": true,
+    "sse": true,
+    "weather_details": true
+  },
+  "contract_version": "1.1.0",
+  "display_timezone": "Asia/Almaty",
+  "normalization_status": "unconfirmed",
+  "service": "wind-forecast",
+  "source_timezone_status": "unconfirmed",
+  "target_unit": "normalized_power",
+  "version": "0.1.0"
+}

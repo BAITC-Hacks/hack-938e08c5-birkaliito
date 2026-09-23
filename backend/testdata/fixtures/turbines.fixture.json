@@ -1,0 +1,23 @@
+{
+  "items": [
+    {
+      "hub_height_m": null,
+      "id": 1,
+      "latitude": 43.64515,
+      "longitude": 78.535604,
+      "metadata_status": "configured_unverified",
+      "name": "Turbine 1",
+      "rated_power_mw": null
+    },
+    {
+      "hub_height_m": null,
+      "id": 2,
+      "latitude": 43.643198,
+      "longitude": 78.538828,
+      "metadata_status": "configured_unverified",
+      "name": "Turbine 2",
+      "rated_power_mw": null
+    }
+  ],
+  "next_cursor": null
+}

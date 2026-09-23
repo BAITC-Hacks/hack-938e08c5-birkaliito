@@ -14,6 +14,7 @@ import (
 )
 
 type JobUseCase interface {
+	CanStream(context.Context) error
 	Get(context.Context, string) (domain.JobRecord, error)
 	Events(context.Context, string, int64, int) ([]domain.AgentEvent, error)
 	Cancel(context.Context, string) (domain.JobRecord, error)
@@ -71,9 +72,16 @@ func (h *JobHandler) Stream(c *gin.Context) {
 		responses.Error(c, e)
 		return
 	}
-	if raw := c.GetHeader("Last-Event-ID"); raw != "" {
+	if values := c.Request.Header.Values("Last-Event-ID"); len(values) > 0 {
+		raw := values[0]
+		valid := len(values) == 1 && raw != ""
+		for _, ch := range raw {
+			if ch < '0' || ch > '9' {
+				valid = false
+			}
+		}
 		v, err := strconv.ParseInt(raw, 10, 64)
-		if err != nil || v < 0 || v > 9007199254740991 {
+		if !valid || err != nil || v < 0 || v > 9007199254740991 {
 			responses.Error(c, domain.Err("INVALID_CURSOR", "Invalid Last-Event-ID"))
 			return
 		}
@@ -97,6 +105,10 @@ func (h *JobHandler) Stream(c *gin.Context) {
 	stop := context.AfterFunc(h.lifecycle, cancel)
 	defer stop()
 	id := c.Param("id")
+	if e = h.service.CanStream(ctx); e != nil {
+		responses.Error(c, e)
+		return
+	}
 	j, e := h.service.Get(ctx, id)
 	if e != nil {
 		responses.Error(c, e)

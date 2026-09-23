@@ -25,6 +25,13 @@ func (s *Service) CheckRequest(ctx context.Context, r domain.ForecastRequest) er
 	if r.DataMode == "fixture" && !s.allowFixtures {
 		return domain.Err("FIXTURE_MODE_DISABLED", "Fixture mode is disabled")
 	}
+	capabilities, err := s.catalog.Capabilities(ctx)
+	if err != nil {
+		return err
+	}
+	if !capabilities.Forecast {
+		return domain.Err("FEATURE_NOT_SUPPORTED", "Forecast capability unsupported")
+	}
 	models, err := s.catalog.Models(ctx)
 	if err != nil {
 		return err

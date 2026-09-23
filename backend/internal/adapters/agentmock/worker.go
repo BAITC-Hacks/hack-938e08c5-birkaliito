@@ -112,7 +112,9 @@ func fixture(q domain.ForecastRequest, id string, created time.Time) (domain.For
 	}
 	// Exact artifact bytes are canonical JSON of the weather points returned by /weather.
 	artifact := make([]map[string]any, 0, len(w.Points))
-	for _, p := range w.Points { artifact = append(artifact, map[string]any{"turbine_id":p.TurbineID,"valid_time":p.ValidTime,"wind_speed_ms":p.WindSpeedMS,"wind_height_m":p.WindHeightM,"temperature_c":p.TemperatureC,"is_interpolated":p.IsInterpolated}) }
+	for _, p := range w.Points {
+		artifact = append(artifact, map[string]any{"turbine_id": p.TurbineID, "valid_time": p.ValidTime, "wind_speed_ms": p.WindSpeedMS, "wind_height_m": p.WindHeightM, "temperature_c": p.TemperatureC, "is_interpolated": p.IsInterpolated})
+	}
 	b, _ := json.Marshal(artifact)
 	sum := sha256.Sum256(b)
 	policy := "fixture-availability-v1"

@@ -1,0 +1,38 @@
+{
+  "baseline_name": "fixture-persistence-not-measured",
+  "data_mode": "fixture",
+  "evaluation_id": "fixture-evaluation-unavailable",
+  "evaluation_scope": "end_to_end",
+  "metrics": [
+    {
+      "bias": null,
+      "coverage_q10_q90": null,
+      "lead_from": 1,
+      "lead_to": 48,
+      "mae": null,
+      "mean_interval_width": null,
+      "rmse": null,
+      "turbine_id": 1
+    },
+    {
+      "bias": null,
+      "coverage_q10_q90": null,
+      "lead_from": 1,
+      "lead_to": 48,
+      "mae": null,
+      "mean_interval_width": null,
+      "rmse": null,
+      "turbine_id": 2
+    }
+  ],
+  "model_version": "fixture-not-trained",
+  "n_observations": null,
+  "notes": [
+    "MOCK: Synthetic UI example; no model evaluation was performed"
+  ],
+  "period_end": "2026-01-03T00:00:00Z",
+  "period_start": "2026-01-01T00:00:00Z",
+  "status": "unavailable",
+  "target_unit": "normalized_power",
+  "training_data_available_through": "2025-12-31T00:00:00Z"
+}

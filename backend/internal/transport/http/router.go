@@ -1,6 +1,7 @@
 package httptransport
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"log/slog"
 	"wind/backend/api"
@@ -11,10 +12,21 @@ import (
 	"wind/backend/internal/transport/http/responses"
 )
 
-func NewRouter(f *handlers.ForecastHandler, j *handlers.JobHandler, r *handlers.ReplayHandler, c *handlers.CatalogHandler, e *handlers.EvaluationHandler, log *slog.Logger, origins []string) *gin.Engine {
+func NewRouter(f *handlers.ForecastHandler, j *handlers.JobHandler, r *handlers.ReplayHandler, c *handlers.CatalogHandler, e *handlers.EvaluationHandler, log *slog.Logger, origins []string, lifecycle context.Context) *gin.Engine {
 	router := gin.New()
 	_ = router.SetTrustedProxies(nil)
 	router.Use(middleware.Common(log, origins))
+	router.Use(func(c *gin.Context) {
+		select {
+		case <-lifecycle.Done():
+			if c.Request.Method == "POST" || c.Request.URL.Path == "/readyz" {
+				responses.Error(c, domain.Err("DEPENDENCY_UNAVAILABLE", "Server is stopping"))
+				return
+			}
+		default:
+		}
+		c.Next()
+	})
 	router.HandleMethodNotAllowed = true
 	router.GET("/healthz", func(c *gin.Context) { c.JSON(200, dto.Health{Status: "ok"}) })
 	router.GET("/readyz", c.Ready)

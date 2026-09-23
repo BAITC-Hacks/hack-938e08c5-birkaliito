@@ -97,6 +97,14 @@ func listFilter(c *gin.Context, forecasts bool) (domain.ListFilter, error) {
 	if e != nil {
 		return f, e
 	}
+	if _, ok := c.Request.URL.Query()["turbine_id"]; ok && f.TurbineID == 0 {
+		return f, domain.Invalid("turbine_id must be 1 or 2")
+	}
+	for _, key := range []string{"status", "data_mode"} {
+		if value, ok := c.Request.URL.Query()[key]; ok && value[0] == "" {
+			return f, domain.Invalid("Empty " + key)
+		}
+	}
 	for key, dst := range map[string]**time.Time{"forecast_origin_from": &f.From, "forecast_origin_to": &f.To} {
 		if raw, ok := c.Request.URL.Query()[key]; ok {
 			t, err := time.Parse(time.RFC3339Nano, raw[0])

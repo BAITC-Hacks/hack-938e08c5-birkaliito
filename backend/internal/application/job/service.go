@@ -15,6 +15,16 @@ type Service struct {
 func NewJobService(j ports.JobGateway, e ports.EventReader, c ports.ModelCatalog) *Service {
 	return &Service{j, e, c}
 }
+func (s *Service) CanStream(ctx context.Context) error {
+	c, e := s.catalog.Capabilities(ctx)
+	if e != nil {
+		return e
+	}
+	if !c.SSE {
+		return domain.Err("FEATURE_NOT_SUPPORTED", "Event streaming unsupported")
+	}
+	return nil
+}
 func (s *Service) Get(ctx context.Context, id string) (domain.JobRecord, error) {
 	j, e := s.jobs.GetJob(ctx, id)
 	if e == nil {

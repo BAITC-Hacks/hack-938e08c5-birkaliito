@@ -2,6 +2,8 @@ package replay
 
 import (
 	"context"
+	"slices"
+	"time"
 	"wind/backend/internal/application/forecast"
 	"wind/backend/internal/application/ports"
 	"wind/backend/internal/domain"
@@ -31,10 +33,14 @@ func (s *Service) Create(ctx context.Context, r domain.ReplayRequest, op domain.
 	if !cap.Replay {
 		return domain.JobRecord{}, domain.Err("FEATURE_NOT_SUPPORTED", "Replay unsupported")
 	}
+	earliest := r.Origins[0]
 	for _, t := range r.Origins {
-		if e = s.forecast.CheckRequest(ctx, domain.ForecastRequest{ForecastOrigin: t, HorizonHours: r.HorizonHours, TurbineIDs: r.TurbineIDs, ModelVersion: r.ModelVersion, Mode: "replay", DataMode: r.DataMode}); e != nil {
-			return domain.JobRecord{}, e
+		if t.Before(earliest) {
+			earliest = t
 		}
+	}
+	if e = s.forecast.CheckRequest(ctx, domain.ForecastRequest{ForecastOrigin: earliest, HorizonHours: r.HorizonHours, TurbineIDs: r.TurbineIDs, ModelVersion: r.ModelVersion, Mode: "replay", DataMode: r.DataMode}); e != nil {
+		return domain.JobRecord{}, e
 	}
 	return s.gateway.CreateReplay(ctx, r, op)
 }
@@ -56,6 +62,32 @@ func (s *Service) Export(ctx context.Context, id string, allowPartial bool) (dom
 	if e != nil {
 		return domain.Export{}, e
 	}
+	actual := domain.ReplayCounters{Total: len(jobs)}
+	seen := map[string]bool{}
+	for _, j := range jobs {
+		if seen[j.JobID] {
+			return domain.Export{}, domain.Violation("Duplicate replay child")
+		}
+		seen[j.JobID] = true
+		switch j.Status {
+		case "completed":
+			actual.Completed++
+		case "failed":
+			actual.Failed++
+		case "cancelled":
+			actual.Cancelled++
+		default:
+			return domain.Export{}, domain.Violation("Terminal replay has non-terminal children")
+		}
+	}
+	if actual != d.Counters {
+		return domain.Export{}, domain.Violation("Replay child snapshot disagrees with counters")
+	}
+	origins := map[time.Time]bool{}
+	for _, t := range d.Request.Origins {
+		origins[t.UTC()] = true
+	}
+	used := map[time.Time]bool{}
 	out := domain.Export{Results: []domain.ForecastResult{}, Counters: d.Counters, Partial: d.Job.Status != "completed"}
 	for _, j := range jobs {
 		if j.Status == "completed" {
@@ -63,6 +95,14 @@ func (s *Service) Export(ctx context.Context, id string, allowPartial bool) (dom
 			if e != nil {
 				return domain.Export{}, e
 			}
+			turbines := slices.Clone(r.TurbineIDs)
+			slices.Sort(turbines)
+			expected := slices.Clone(d.Request.TurbineIDs)
+			slices.Sort(expected)
+			if !origins[r.ForecastOrigin.UTC()] || used[r.ForecastOrigin.UTC()] || r.HorizonHours != d.Request.HorizonHours || r.DataMode != d.Request.DataMode || r.ModelVersion != d.Request.ModelVersion || !slices.Equal(turbines, expected) {
+				return domain.Export{}, domain.Violation("Replay result does not belong to the requested batch")
+			}
+			used[r.ForecastOrigin.UTC()] = true
 			out.Results = append(out.Results, r)
 		}
 	}

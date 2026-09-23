@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"net/url"
 	"os"
 	"strconv"
@@ -152,7 +153,7 @@ func (c Config) Validate() error {
 		return fmt.Errorf("configure two turbines")
 	}
 	for i, t := range c.Turbines {
-		if t.ID != i+1 || t.Latitude < -90 || t.Latitude > 90 || t.Longitude < -180 || t.Longitude > 180 {
+		if t.ID != i+1 || math.IsNaN(t.Latitude) || math.IsNaN(t.Longitude) || t.Latitude < -90 || t.Latitude > 90 || t.Longitude < -180 || t.Longitude > 180 {
 			return fmt.Errorf("invalid turbine configuration")
 		}
 	}
