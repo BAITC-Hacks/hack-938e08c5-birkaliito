@@ -1,18 +1,26 @@
 # Прогнозирование выработки ветроэнергии
 
-В папке [backend](backend/README.md) находится Go/Gin API. Сейчас он запускается с синтетическим прогнозом (`fixture`) для подключения фронтенда. Обученной ML-модели и Python-сервиса в этом репозитории пока нет.
+В репозитории находятся:
+1. **[backend](backend/README.md)**: Go/Gin REST API (собирает задачи, работает с фронтендом).
+2. **[ml](ml/README.md)**: Python ML-сервис (XGBoost), который прогнозирует выработку на 24-48 часов вперед, используя GFS погоду от Open-Meteo и исторические датасеты SCADA.
 
-## Запуск на любом ноутбуке
+Обе части связаны в единую систему! Backend обращается к ML-сервису по HTTP-протоколу для получения реальных ML-прогнозов.
 
-Нужен Docker с поддержкой Compose. Из корня репозитория выполните две команды:
+## Запуск системы (Backend + ML)
+
+Вам нужен только Docker с поддержкой Compose. Из корня репозитория выполните команды:
 
 ```sh
 cd backend
-docker compose up --build
+docker compose up --build -d
 ```
 
-API: <http://127.0.0.1:8080>, документация: <http://127.0.0.1:8080/docs>. Первый запуск загружает зависимости и требует интернет. Остановка — `Ctrl+C`; данные mock хранятся в памяти и после остановки исчезают.
+Эта команда поднимет **одновременно и Go API, и Python ML-сервис**.
+- API: <http://127.0.0.1:8080>
+- Swagger документация: <http://127.0.0.1:8080/docs>
 
-Контракт для фронтенда: [OpenAPI](backend/api/openapi.yaml), [TypeScript-типы](backend/contracts/typescript/api-types.ts), [клиент](backend/contracts/typescript/client.ts), [порядок подключения](backend/docs/FRONTEND_HANDOFF.md). Подробности, реальные возможности и ограничения — в [README backend](backend/README.md).
+Первый запуск займет некоторое время для скачивания библиотек. Для остановки сервисов используйте `docker compose down`.
 
-Когда появятся фронтенд и ML-сервис, их можно добавить в один Compose-проект. Текущий Compose запускает только Go API: обещать запуск всей системы одной командой пока рано.
+## Фронтенд
+Контракт для фронтенда: [OpenAPI](backend/api/openapi.yaml), [TypeScript-типы](backend/contracts/typescript/api-types.ts), [клиент](backend/contracts/typescript/client.ts), [порядок подключения](backend/docs/FRONTEND_HANDOFF.md). 
+Когда появится фронтенд, его так же можно будет добавить в `backend/compose.yaml`.
