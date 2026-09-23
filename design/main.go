@@ -6,13 +6,18 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 )
 
 //go:embed index.html styles.css app.js model.mjs api.mjs assets
 var assets embed.FS
 
 func main() {
-	backend, err := url.Parse("http://127.0.0.1:8080")
+	backendURL := os.Getenv("BACKEND_URL")
+	if backendURL == "" {
+		backendURL = "http://127.0.0.1:8080"
+	}
+	backend, err := url.Parse(backendURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,6 +27,11 @@ func main() {
 		mux.Handle(path, proxy)
 	}
 	mux.Handle("/", http.FileServer(http.FS(assets)))
-	log.Println("AURA: http://localhost:4173 (backend proxy: http://127.0.0.1:8080)")
-	log.Fatal(http.ListenAndServe("127.0.0.1:4173", mux))
+	
+	addr := os.Getenv("HTTP_ADDR")
+	if addr == "" {
+		addr = "127.0.0.1:4173"
+	}
+	log.Printf("AURA: http://%s (backend proxy: %s)\n", addr, backendURL)
+	log.Fatal(http.ListenAndServe(addr, mux))
 }
