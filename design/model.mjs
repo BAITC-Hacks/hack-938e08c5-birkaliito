@@ -5,9 +5,9 @@
 export const ZONE = 'Asia/Almaty';
 export const STATE_LABELS = {
   initial:'До запуска', submitting:'Отправка запроса', queued:'В очереди', running:'Выполняется',
-  completed:'Завершён', degraded:'Завершён · degraded', failed:'Ошибка задания',
-  cancel_requested:'Отмена запрошена', cancelled:'Отменён', python_unavailable:'Python недоступен',
-  llm_unavailable:'LLM недоступна', metrics_unavailable:'Метрики недоступны',
+  completed:'Готов', degraded:'Готов · есть замечания', failed:'Не удалось рассчитать',
+  cancel_requested:'Ожидает отмены', cancelled:'Отменён', python_unavailable:'Сервис расчёта недоступен',
+  llm_unavailable:'Нет текстового объяснения', metrics_unavailable:'Нет оценки точности',
 };
 export function csvTime(value) {
   const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {
@@ -36,6 +36,28 @@ export function statusOf(stage) {
   return stage;
 }
 export const hasResult = run => statusOf(run.stage)==='completed';
+// Prefer server-backed results; local illustrations must not outrank a real history.
+export function latestForecast(history) {
+  const ready=history.filter(hasResult);
+  const remote=ready.filter(run=>run.remote);
+  return [...(remote.length?remote:ready)].sort((a,b)=>Date.parse(b.origin)-Date.parse(a.origin))[0] || null;
+}
+// Never silently substitute another forecast when the selected origin is filtered out.
+export const visibleSelection = (rows, key) => rows.find(row=>row.key===key) || null;
+// Display-only summary. Never average or sum differently normalized turbines.
+export function powerOverview(points, turbines) {
+  const rows=points.filter(p=>turbines.includes(String(p.turbine_id)));
+  const usable=rows.filter(p=>Number.isFinite(p.power_mean)&&Number.isFinite(Date.parse(p.valid_time)));
+  return {
+    records:rows.length,
+    hours:new Set(usable.map(p=>Date.parse(p.valid_time))).size,
+    unavailable:rows.length-usable.length,
+    turbines:turbines.map(id=>{
+      const values=usable.filter(p=>String(p.turbine_id)===id).map(p=>p.power_mean);
+      return {id,count:values.length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null,min:values.length?Math.min(...values):null,max:values.length?Math.max(...values):null};
+    }),
+  };
+}
 export function filterHistory(rows,{from='',to='',turbine='all',status='all',mode='all',sort='desc'}={}) {
   return rows.filter(r=>(!from||originDay(r.origin)>=from)&&(!to||originDay(r.origin)<=to)&&(turbine==='all'||r.turbines.includes(turbine))&&(status==='all'||statusOf(r.stage)===status)&&(mode==='all'||r.mode===mode)).sort((a,b)=>(Date.parse(a.origin)-Date.parse(b.origin))*(sort==='asc'?1:-1));
 }
