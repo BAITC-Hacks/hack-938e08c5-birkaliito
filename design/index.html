@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111315">
+  <title>AURA — прогноз и планирование выработки</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">К содержимому</a>
+  <div id="sidebar-dock">
+    <aside class="sidebar" id="sidebar" aria-label="Навигация AURA">
+      <div class="sidebar-brand-row">
+        <a class="sidebar-brand" href="#home" aria-label="AURA — главная"><span class="brand-symbol" aria-hidden="true">a</span><span class="brand-word">aura</span></a>
+        <button class="sidebar-close" data-action="menu-close" aria-label="Закрыть меню"><span data-icon="close"></span></button>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-navigation" aria-label="Основная навигация">
+        <a class="sidebar-link" href="#home" data-page="home" aria-label="Главная" title="Главная"><span data-icon="grid"></span><span class="nav-label">Главная</span><span class="nav-tooltip" aria-hidden="true">Главная</span></a>
+        <a class="sidebar-link" href="#forecast" data-page="forecast" aria-label="Прогноз" title="Прогноз"><span data-icon="wind"></span><span class="nav-label">Прогноз</span><span class="nav-tooltip" aria-hidden="true">Прогноз</span></a>
+        <a class="sidebar-link" href="#reports" data-page="reports" aria-label="Аналитика и история" title="Аналитика и история"><span data-icon="chart"></span><span class="nav-label">Аналитика и история</span><span class="nav-tooltip" aria-hidden="true">Аналитика и история</span></a>
+        <div class="sidebar-divider" aria-hidden="true"></div>
+        <a class="sidebar-link" href="#data" data-page="data" aria-label="Исходные данные" title="Исходные данные"><span data-icon="database"></span><span class="nav-label">Исходные данные</span><span class="nav-tooltip" aria-hidden="true">Исходные данные</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="sidebar-link" data-action="help" aria-label="Помощь" title="Помощь"><span data-icon="help"></span><span class="nav-label">Помощь</span><span class="nav-tooltip" aria-hidden="true">Помощь</span></button>
+        <button class="sidebar-link" id="sidebar-toggle" data-action="sidebar-toggle" aria-controls="sidebar-navigation" aria-expanded="true" aria-label="Свернуть меню" title="Свернуть меню"><span data-icon="right" class="collapse-icon"></span><span class="nav-label">Свернуть меню</span><span class="nav-tooltip" aria-hidden="true">Развернуть меню</span></button>
+      </div>
+    </aside>
+  </div>
+  <div class="shell">
+    <header class="topbar">
+      <button id="mobile-menu" class="menu-trigger" data-action="menu-open" aria-controls="nav-dialog" aria-expanded="false"><span data-icon="menu"></span><span>Меню</span></button>
+      <div class="header-context"></div>
+      <div class="header-controls">
+        <button class="reading-toggle" data-action="reading-size" aria-pressed="false" aria-label="Крупный текст" title="Крупный текст"><b aria-hidden="true">Аа</b><span>Крупный текст</span></button>
+      </div>
+    </header>
+    <div class="fixture-banner"><span data-icon="info"></span><span>Демо-данные · не для рабочих решений</span><button data-action="prototype-info">Подробнее <span data-icon="arrow"></span></button></div>
+    <main id="main" tabindex="-1"></main>
+  </div>
+  <dialog id="nav-dialog" class="mobile-menu-dialog" aria-label="Главное меню"></dialog>
+  <dialog id="modal" aria-labelledby="modal-title"><div class="modal-heading"><div><p class="eyebrow" id="modal-kicker">AURA / ДЕТАЛИ</p><h2 id="modal-title"></h2></div><button class="icon-button" data-action="close" aria-label="Закрыть окно"><span data-icon="close"></span></button></div><div id="modal-body"></div></dialog>
+  <div class="toast" role="status" aria-live="polite" id="toast"></div>
+</body>
+</html>
