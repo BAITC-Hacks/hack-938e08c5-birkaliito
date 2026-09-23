@@ -33,34 +33,14 @@ const post = (path, body, key) => json(path, {
 
 export const api = {
   meta:()=>json('/api/meta'),
-  turbines:()=>json('/api/turbines'),
   models:()=>json('/api/models'),
   forecasts:(query={})=>json('/api/forecast-runs',{},query),
   createForecast:(body,key)=>post('/api/forecast-runs',body,key),
-  forecastDetails:id=>json(`/api/forecast-runs/${encodeURIComponent(id)}`),
   job:id=>json(`/api/jobs/${encodeURIComponent(id)}`),
-  events:(id,after=0)=>json(`/api/jobs/${encodeURIComponent(id)}/events`,{}, {after,limit:1000}),
   result:id=>json(`/api/forecast-runs/${encodeURIComponent(id)}/result`),
   cancel:id=>post(`/api/jobs/${encodeURIComponent(id)}/cancel`),
-  createReplay:(body,key)=>post('/api/replays',body,key),
-  replayDetails:id=>json(`/api/replays/${encodeURIComponent(id)}`),
-  replayRuns:id=>json(`/api/replays/${encodeURIComponent(id)}/runs`),
-  weather:id=>json(`/api/forecast-runs/${encodeURIComponent(id)}/weather`),
-  explanation:id=>json(`/api/forecast-runs/${encodeURIComponent(id)}/explanation`),
-  evaluations:(query={})=>json('/api/evaluations',{},query),
   dataQuality:()=>json('/api/data-quality'),
   exportForecast:async id=>(await request(`/api/forecast-runs/${encodeURIComponent(id)}/export`)).blob(),
-  exportReplay:async(id,allowPartial=false)=>{
-    const response=await request(`/api/replays/${encodeURIComponent(id)}/export`,{}, {allow_partial:allowPartial});
-    return {
-      blob:await response.blob(),
-      status:response.headers.get('X-Replay-Export-Status'),
-      total:Number(response.headers.get('X-Replay-Total')),
-      completed:Number(response.headers.get('X-Replay-Completed')),
-      failed:Number(response.headers.get('X-Replay-Failed')),
-      cancelled:Number(response.headers.get('X-Replay-Cancelled')),
-    };
-  },
 };
 
 export const historyRun = item => ({
