@@ -106,7 +106,10 @@ func ForecastPointFromDomain(v domain.ForecastPoint) ForecastPoint {
 	out.LeadHours = v.LeadHours
 	out.PowerMean = v.PowerMean
 	out.Q10 = v.Q10
-	out.Q50 = v.Q50
+	if v.Q50 != nil {
+		item := *v.Q50
+		out.Q50 = &item
+	}
 	out.Q90 = v.Q90
 	return out
 }
@@ -118,7 +121,10 @@ func ForecastPointToDomain(v ForecastPoint) domain.ForecastPoint {
 	out.LeadHours = v.LeadHours
 	out.PowerMean = v.PowerMean
 	out.Q10 = v.Q10
-	out.Q50 = v.Q50
+	if v.Q50 != nil {
+		item := *v.Q50
+		out.Q50 = &item
+	}
 	out.Q90 = v.Q90
 	return out
 }

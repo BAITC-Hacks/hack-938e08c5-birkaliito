@@ -1,0 +1,299 @@
+{
+  "warning": "Conditional-power diagnostic with FUTURE MEASURED WIND, not operational forecast accuracy",
+  "fit_completed_by": "2025-11-30 19:00:00+00:00",
+  "oracle_january": {
+    "mae": 0.03545811152457737,
+    "rmse": 0.06430465983187478,
+    "r2": 0.9636908132849598,
+    "hit_rate_10pp": 0.9603494623655914,
+    "hits_10pp": 1429,
+    "rows": 1488
+  },
+  "weather_error_january": {
+    "gfs": {
+      "mae_ms": 3.6149003136200717,
+      "bias_ms": 2.6082056451612905,
+      "correlation": 0.5023252827316522,
+      "rows": 2976,
+      "caveat": "NWP 100m vs SCADA sensor of unconfirmed height; not pure NWP error"
+    },
+    "icon": {
+      "mae_ms": 2.5282358870967743,
+      "bias_ms": 0.6862567204301074,
+      "correlation": 0.6518320921650699,
+      "rows": 2976,
+      "caveat": "NWP 100m vs SCADA sensor of unconfirmed height; not pure NWP error"
+    }
+  },
+  "constant_0_1_january": {
+    "mae": 0.2768604390681004,
+    "rmse": 0.3991546824212454,
+    "r2": -0.3989883163997483,
+    "hit_rate_10pp": 0.5208333333333334,
+    "hits_10pp": 775,
+    "rows": 1488
+  },
+  "timezone": "Asia/Almaty",
+  "lag_diagnostic_2025": {
+    "gfs": [
+      {
+        "weather_timestamp_shift_hours": -12,
+        "correlation": 0.09793765243268049
+      },
+      {
+        "weather_timestamp_shift_hours": -11,
+        "correlation": 0.11806246044720857
+      },
+      {
+        "weather_timestamp_shift_hours": -10,
+        "correlation": 0.14336688415978793
+      },
+      {
+        "weather_timestamp_shift_hours": -9,
+        "correlation": 0.17614830317072483
+      },
+      {
+        "weather_timestamp_shift_hours": -8,
+        "correlation": 0.2145412509174307
+      },
+      {
+        "weather_timestamp_shift_hours": -7,
+        "correlation": 0.2551211569811747
+      },
+      {
+        "weather_timestamp_shift_hours": -6,
+        "correlation": 0.30060688467418756
+      },
+      {
+        "weather_timestamp_shift_hours": -5,
+        "correlation": 0.34907607747718167
+      },
+      {
+        "weather_timestamp_shift_hours": -4,
+        "correlation": 0.40147067474018333
+      },
+      {
+        "weather_timestamp_shift_hours": -3,
+        "correlation": 0.45659427442691863
+      },
+      {
+        "weather_timestamp_shift_hours": -2,
+        "correlation": 0.5121579479397597
+      },
+      {
+        "weather_timestamp_shift_hours": -1,
+        "correlation": 0.5563603977636571
+      },
+      {
+        "weather_timestamp_shift_hours": 0,
+        "correlation": 0.5831625429177454
+      },
+      {
+        "weather_timestamp_shift_hours": 1,
+        "correlation": 0.5882608758087556
+      },
+      {
+        "weather_timestamp_shift_hours": 2,
+        "correlation": 0.5694984448278125
+      },
+      {
+        "weather_timestamp_shift_hours": 3,
+        "correlation": 0.5298722932992241
+      },
+      {
+        "weather_timestamp_shift_hours": 4,
+        "correlation": 0.4805412686101624
+      },
+      {
+        "weather_timestamp_shift_hours": 5,
+        "correlation": 0.4217363755837905
+      },
+      {
+        "weather_timestamp_shift_hours": 6,
+        "correlation": 0.36226068544780954
+      },
+      {
+        "weather_timestamp_shift_hours": 7,
+        "correlation": 0.3039403778098539
+      },
+      {
+        "weather_timestamp_shift_hours": 8,
+        "correlation": 0.2500266715777615
+      },
+      {
+        "weather_timestamp_shift_hours": 9,
+        "correlation": 0.2027305403340095
+      },
+      {
+        "weather_timestamp_shift_hours": 10,
+        "correlation": 0.16463264329507285
+      },
+      {
+        "weather_timestamp_shift_hours": 11,
+        "correlation": 0.1362506101523988
+      },
+      {
+        "weather_timestamp_shift_hours": 12,
+        "correlation": 0.11550020857726559
+      }
+    ],
+    "icon": [
+      {
+        "weather_timestamp_shift_hours": -12,
+        "correlation": 0.1204283086198777
+      },
+      {
+        "weather_timestamp_shift_hours": -11,
+        "correlation": 0.14031579077624579
+      },
+      {
+        "weather_timestamp_shift_hours": -10,
+        "correlation": 0.16733337398812564
+      },
+      {
+        "weather_timestamp_shift_hours": -9,
+        "correlation": 0.20265584441190138
+      },
+      {
+        "weather_timestamp_shift_hours": -8,
+        "correlation": 0.24296607733676565
+      },
+      {
+        "weather_timestamp_shift_hours": -7,
+        "correlation": 0.29162751814074794
+      },
+      {
+        "weather_timestamp_shift_hours": -6,
+        "correlation": 0.3490823417389628
+      },
+      {
+        "weather_timestamp_shift_hours": -5,
+        "correlation": 0.4107644454748376
+      },
+      {
+        "weather_timestamp_shift_hours": -4,
+        "correlation": 0.4713716415961633
+      },
+      {
+        "weather_timestamp_shift_hours": -3,
+        "correlation": 0.5326279398602677
+      },
+      {
+        "weather_timestamp_shift_hours": -2,
+        "correlation": 0.5876129010523202
+      },
+      {
+        "weather_timestamp_shift_hours": -1,
+        "correlation": 0.6302864631927736
+      },
+      {
+        "weather_timestamp_shift_hours": 0,
+        "correlation": 0.6492483183705846
+      },
+      {
+        "weather_timestamp_shift_hours": 1,
+        "correlation": 0.6417192269843092
+      },
+      {
+        "weather_timestamp_shift_hours": 2,
+        "correlation": 0.608914248100364
+      },
+      {
+        "weather_timestamp_shift_hours": 3,
+        "correlation": 0.5609594935163108
+      },
+      {
+        "weather_timestamp_shift_hours": 4,
+        "correlation": 0.501191654340868
+      },
+      {
+        "weather_timestamp_shift_hours": 5,
+        "correlation": 0.43915855628519535
+      },
+      {
+        "weather_timestamp_shift_hours": 6,
+        "correlation": 0.3771421539683581
+      },
+      {
+        "weather_timestamp_shift_hours": 7,
+        "correlation": 0.32066582058856297
+      },
+      {
+        "weather_timestamp_shift_hours": 8,
+        "correlation": 0.27122713718288616
+      },
+      {
+        "weather_timestamp_shift_hours": 9,
+        "correlation": 0.22718820146359087
+      },
+      {
+        "weather_timestamp_shift_hours": 10,
+        "correlation": 0.18812878686338436
+      },
+      {
+        "weather_timestamp_shift_hours": 11,
+        "correlation": 0.15293671064373157
+      },
+      {
+        "weather_timestamp_shift_hours": 12,
+        "correlation": 0.12111459249203739
+      }
+    ]
+  },
+  "hypothetical_iid_wind_noise": [
+    {
+      "assumed_wind_error_std_ms": 0.0,
+      "mae": 0.03545811152457737,
+      "rmse": 0.06430465983187478,
+      "r2": 0.9636908132849598,
+      "hit_rate_10pp": 0.9603494623655914,
+      "hits_10pp": 142900,
+      "rows": 148800
+    },
+    {
+      "assumed_wind_error_std_ms": 0.5,
+      "mae": 0.04991635555048766,
+      "rmse": 0.08179839537733148,
+      "r2": 0.9412481969226164,
+      "hit_rate_10pp": 0.8556115591397849,
+      "hits_10pp": 127315,
+      "rows": 148800
+    },
+    {
+      "assumed_wind_error_std_ms": 1.0,
+      "mae": 0.07594461388329872,
+      "rmse": 0.11864742822165952,
+      "r2": 0.8763915134772217,
+      "hit_rate_10pp": 0.719872311827957,
+      "hits_10pp": 107117,
+      "rows": 148800
+    },
+    {
+      "assumed_wind_error_std_ms": 1.5,
+      "mae": 0.10296759759353362,
+      "rmse": 0.15904540095214725,
+      "r2": 0.7778870595420075,
+      "hit_rate_10pp": 0.634502688172043,
+      "hits_10pp": 94414,
+      "rows": 148800
+    },
+    {
+      "assumed_wind_error_std_ms": 2.0,
+      "mae": 0.12972830876128227,
+      "rmse": 0.19913863709684787,
+      "r2": 0.6517888351789736,
+      "hit_rate_10pp": 0.5724193548387096,
+      "hits_10pp": 85176,
+      "rows": 148800
+    },
+    {
+      "assumed_wind_error_std_ms": 3.0,
+      "mae": 0.17989481775174931,
+      "rmse": 0.2705076656320178,
+      "r2": 0.35747388458814977,
+      "hit_rate_10pp": 0.4927150537634409,
+      "hits_10pp": 73316,
+      "rows": 148800
+    }
+  ]
+}

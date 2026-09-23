@@ -27,9 +27,15 @@ func writeCSV(c *gin.Context, results []domain.ForecastResult, id string) {
 		})
 		for _, p := range points {
 			row := []string{r.RunID, r.ForecastOrigin.UTC().Format(time.RFC3339), strconv.Itoa(p.TurbineID), p.ValidTime.UTC().Format(time.RFC3339), p.IntervalEnd.UTC().Format(time.RFC3339), strconv.Itoa(p.LeadHours)}
-			for _, n := range []float64{p.PowerMean, p.Q10, p.Q50, p.Q90} {
+			for _, n := range []float64{p.PowerMean, p.Q10} {
 				row = append(row, strconv.FormatFloat(n, 'g', -1, 64))
 			}
+			if p.Q50 == nil {
+				row = append(row, "")
+			} else {
+				row = append(row, strconv.FormatFloat(*p.Q50, 'g', -1, 64))
+			}
+			row = append(row, strconv.FormatFloat(p.Q90, 'g', -1, 64))
 			row = append(row, r.DataMode)
 			if e := w.Write(row); e != nil {
 				_ = c.Error(e)

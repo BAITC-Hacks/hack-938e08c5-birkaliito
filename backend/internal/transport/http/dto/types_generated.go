@@ -38,7 +38,7 @@ type ForecastPoint struct {
 	LeadHours   int       `json:"lead_hours"`
 	PowerMean   float64   `json:"power_mean"`
 	Q10         float64   `json:"q10"`
-	Q50         float64   `json:"q50"`
+	Q50         *float64  `json:"q50"`
 	Q90         float64   `json:"q90"`
 }
 
