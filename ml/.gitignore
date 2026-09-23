@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+data/raw/
+data/weather/
+data/processed/
+artifacts/
+/outputs/*
+!/outputs/README.md
+.env
+*.joblib

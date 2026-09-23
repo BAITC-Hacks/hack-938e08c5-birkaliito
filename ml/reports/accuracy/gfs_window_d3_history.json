@@ -1,0 +1,58 @@
+{
+  "name": "gfs_window_d3_history",
+  "spec": {
+    "source": "gfs",
+    "objective": "window",
+    "depth": 3,
+    "history": true
+  },
+  "folds": [
+    {
+      "start": "2024-12-31 19:00:00+00:00",
+      "trees": 83,
+      "mae": 0.19298611111111114,
+      "rmse": 0.30380627493218776,
+      "r2": 0.3183173601224246,
+      "hit_rate_10pp": 0.6811155913978495,
+      "hits_10pp": 2027,
+      "rows": 2976
+    },
+    {
+      "start": "2025-04-30 19:00:00+00:00",
+      "trees": 50,
+      "mae": 0.24565222537878786,
+      "rmse": 0.3629919625165844,
+      "r2": -0.02956224812800623,
+      "hit_rate_10pp": 0.5681818181818182,
+      "hits_10pp": 1600,
+      "rows": 2816
+    },
+    {
+      "start": "2025-08-31 19:00:00+00:00",
+      "trees": 148,
+      "mae": 0.24944367176634216,
+      "rmse": 0.366903351139537,
+      "r2": -0.16993742996993788,
+      "hit_rate_10pp": 0.5525034770514604,
+      "hits_10pp": 1589,
+      "rows": 2876
+    },
+    {
+      "start": "2025-10-31 19:00:00+00:00",
+      "trees": 275,
+      "mae": 0.21313773148148146,
+      "rmse": 0.3193494484354864,
+      "r2": 0.2765570936011643,
+      "hit_rate_10pp": 0.6180555555555556,
+      "hits_10pp": 1780,
+      "rows": 2880
+    }
+  ],
+  "mean_hit_rate_10pp": 0.604964110546671,
+  "mean_mae": 0.22530493493443066,
+  "fingerprint": "bd654d6d81e2fe7eaa9897d8dbca82207efa620497f1b7c00e27e875e490ef39",
+  "cache_migration": {
+    "reason": "apply operational weather-only fallback to initial CV predictions; fitting and fresh-history predictions unchanged",
+    "stale_history_rows": 146
+  }
+}
