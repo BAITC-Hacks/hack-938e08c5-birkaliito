@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "availability": "ready",
+      "data_mode": "fixture",
+      "display_name": "Synthetic fixture (not trained)",
+      "feature_version": "fixture-features-v1",
+      "model_version": "fixture-not-trained",
+      "supports_quantiles": true,
+      "training_data_available_through": "2023-03-01T00:00:00Z"
+    }
+  ],
+  "next_cursor": null
+}

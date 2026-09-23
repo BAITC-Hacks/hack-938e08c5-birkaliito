@@ -1,0 +1,159 @@
+{
+  "items": [
+    {
+      "cancel_requested": false,
+      "job": {
+        "created_at": "2026-09-23T10:45:01.6974566Z",
+        "error_code": null,
+        "error_message": null,
+        "job_id": "fixture-forecast-000007",
+        "job_type": "forecast",
+        "stage": "completed",
+        "status": "completed",
+        "updated_at": "2026-09-23T10:45:01.7038804Z"
+      },
+      "parent_replay_id": "fixture-replay-000005",
+      "request": {
+        "data_mode": "fixture",
+        "forecast_origin": "2026-02-01T18:00:00Z",
+        "horizon_hours": 48,
+        "mode": "replay",
+        "model_version": "fixture-not-trained",
+        "turbine_ids": [
+          1,
+          2
+        ]
+      },
+      "result_available": true
+    },
+    {
+      "cancel_requested": false,
+      "job": {
+        "created_at": "2026-09-23T10:45:01.6974566Z",
+        "error_code": null,
+        "error_message": null,
+        "job_id": "fixture-forecast-000006",
+        "job_type": "forecast",
+        "stage": "completed",
+        "status": "completed",
+        "updated_at": "2026-09-23T10:45:01.7032924Z"
+      },
+      "parent_replay_id": "fixture-replay-000005",
+      "request": {
+        "data_mode": "fixture",
+        "forecast_origin": "2026-01-31T18:00:00Z",
+        "horizon_hours": 48,
+        "mode": "replay",
+        "model_version": "fixture-not-trained",
+        "turbine_ids": [
+          1,
+          2
+        ]
+      },
+      "result_available": true
+    },
+    {
+      "cancel_requested": false,
+      "job": {
+        "created_at": "2026-09-23T10:45:01.6818039Z",
+        "error_code": null,
+        "error_message": null,
+        "job_id": "fixture-forecast-000004",
+        "job_type": "forecast",
+        "stage": "completed",
+        "status": "completed",
+        "updated_at": "2026-09-23T10:45:01.6868634Z"
+      },
+      "parent_replay_id": null,
+      "request": {
+        "data_mode": "fixture",
+        "forecast_origin": "2026-01-31T18:00:00Z",
+        "horizon_hours": 48,
+        "mode": "replay",
+        "model_version": "fixture-not-trained",
+        "turbine_ids": [
+          2
+        ]
+      },
+      "result_available": true
+    },
+    {
+      "cancel_requested": false,
+      "job": {
+        "created_at": "2026-09-23T10:45:01.6683843Z",
+        "error_code": null,
+        "error_message": null,
+        "job_id": "fixture-forecast-000003",
+        "job_type": "forecast",
+        "stage": "completed",
+        "status": "completed",
+        "updated_at": "2026-09-23T10:45:01.6727163Z"
+      },
+      "parent_replay_id": null,
+      "request": {
+        "data_mode": "fixture",
+        "forecast_origin": "2026-01-31T18:00:00Z",
+        "horizon_hours": 24,
+        "mode": "replay",
+        "model_version": "fixture-not-trained",
+        "turbine_ids": [
+          1,
+          2
+        ]
+      },
+      "result_available": true
+    },
+    {
+      "cancel_requested": false,
+      "job": {
+        "created_at": "2026-09-23T10:45:01.6571264Z",
+        "error_code": null,
+        "error_message": null,
+        "job_id": "fixture-forecast-000002",
+        "job_type": "forecast",
+        "stage": "completed",
+        "status": "completed",
+        "updated_at": "2026-09-23T10:45:01.6599374Z"
+      },
+      "parent_replay_id": null,
+      "request": {
+        "data_mode": "fixture",
+        "forecast_origin": "2026-01-31T18:00:00Z",
+        "horizon_hours": 24,
+        "mode": "replay",
+        "model_version": "fixture-not-trained",
+        "turbine_ids": [
+          1
+        ]
+      },
+      "result_available": true
+    },
+    {
+      "cancel_requested": false,
+      "job": {
+        "created_at": "2026-09-23T10:45:01.6069892Z",
+        "error_code": null,
+        "error_message": null,
+        "job_id": "fixture-forecast-000001",
+        "job_type": "forecast",
+        "stage": "completed",
+        "status": "completed",
+        "updated_at": "2026-09-23T10:45:01.6187079Z"
+      },
+      "parent_replay_id": null,
+      "request": {
+        "data_mode": "fixture",
+        "forecast_origin": "2026-01-31T18:00:00Z",
+        "horizon_hours": 48,
+        "mode": "replay",
+        "model_version": "fixture-not-trained",
+        "turbine_ids": [
+          1,
+          2
+        ]
+      },
+      "result_available": true
+    }
+  ],
+  "next_cursor": null
+}

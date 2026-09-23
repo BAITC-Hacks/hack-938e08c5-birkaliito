@@ -1,32 +1,31 @@
 # hack-938e08c5-birkaliito
-Hackathon team repository for Birkaliito
 
-## Интерактивный дизайн AURA
+Hackathon team repository for Birkaliito.
 
-Чёрно-жёлтый интерактивный макет по FRONTEND_HANDOFF: прогноз, почасовая
-аналитика, сценарий энергии/дефицита, история «с — по», replay,
-качество модели, агент/источники, исходные CSV и паспорт выпуска.
-Адаптирован для телефона, планшета и ноутбука.
+## Backend
+
+Go/Gin Wind Forecast backend: [backend/README.md](backend/README.md).
+
+Start from `backend/` with `go run ./cmd/api`, then `go run ./cmd/smoke` in a
+second terminal. API docs: `http://127.0.0.1:8080/docs`. Default mode is
+explicitly synthetic fixture simulation; Python integration is configured
+separately.
+
+Frontend integration package: [handoff](backend/docs/FRONTEND_HANDOFF.md),
+[OpenAPI](backend/api/openapi.yaml), and
+[TypeScript client](backend/contracts/typescript/client.ts).
+
+## Interactive AURA design
+
+The responsive prototype covers forecasts, hourly analytics, energy scenarios,
+history, replay, quality, agent sources, source data, and the forecast passport.
 
 ```bash
 cd design
 go run main.go
 ```
 
-Откройте http://localhost:4173/#forecast. После изменения файлов перезапустите Go.
+Open `http://localhost:4173/#forecast`. Run the presentation-model tests with
+`node --test design/model.test.mjs` from the repository root.
 
-Проверка логики: `node --test design/model.test.mjs`.
-
-[Спецификация UX, пользовательские сценарии и дизайн-система](design/DESIGN.md).
-
-Это дизайн-прототип, не production frontend и не работающая Agentic AI система.
-Go только раздаёт статику. API, SSE, ML и погода не подключены; baseline_contracts
-ещё готовит backend-команда. Нет альтернативной схемы API и фальшивых событий агента.
-UX-состояния переключаются вручную внизу экрана прогноза.
-График/история/CSV-пример явно синтетические; это не официальный fixture.
-Агрегаты качества исходных данных и образец измерений взяты из предоставленных CSV.
-КВт·ч и расчётная докупка доступны только в сценарии с заданными номиналами,
-планом и явным допущением о нормализации. Физические потери не выдумываются.
-
-Актуальные превью: [ноутбук](design/previews/v2-desktop.jpg),
-[планшет](design/previews/v2-tablet.jpg), [телефон](design/previews/v2-mobile.jpg).
+See [the UX and design-system specification](design/DESIGN.md).

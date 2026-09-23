@@ -1,0 +1,5 @@
+{
+  "code": "RESULT_NOT_READY",
+  "message": "Forecast result is not available yet.",
+  "request_id": "req-fixture-example"
+}
