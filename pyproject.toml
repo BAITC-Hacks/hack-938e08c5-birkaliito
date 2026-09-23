@@ -21,5 +21,8 @@ wind-forecast = "wind_forecast.cli:main"
 [tool.setuptools.packages.find]
 include = ["wind_forecast*"]
 
+[tool.setuptools.package-data]
+wind_forecast = ["ui.html"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
