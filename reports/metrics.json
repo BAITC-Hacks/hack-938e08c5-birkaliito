@@ -1,0 +1,125 @@
+{
+  "timezone_assumption": "Asia/Almaty",
+  "weather_model": "gfs_global",
+  "target": "hourly normalized active power (0..1)",
+  "train_validation_cutoffs_utc": {
+    "validation": "2025-10-31 19:00:00+00:00",
+    "calibration": "2025-11-30 19:00:00+00:00",
+    "test": "2025-12-31 19:00:00+00:00",
+    "end": "2026-01-31 19:00:00+00:00"
+  },
+  "rows": {
+    "train": 55531,
+    "validation": 2736,
+    "calibration": 2704,
+    "test": 2976
+  },
+  "validation_experiments": [
+    {
+      "depth": 3,
+      "trees": 248,
+      "mae": 0.21784421884416663,
+      "rmse": 0.2638548869827759,
+      "r2": 0.4950241282100193
+    },
+    {
+      "depth": 5,
+      "trees": 132,
+      "mae": 0.21364267416378271,
+      "rmse": 0.2603513723221274,
+      "r2": 0.5083454243926523
+    },
+    {
+      "depth": 7,
+      "trees": 99,
+      "mae": 0.21354954834446513,
+      "rmse": 0.25974645966169174,
+      "r2": 0.5106274371104493
+    }
+  ],
+  "chosen_parameters": {
+    "depth": 7,
+    "trees": 99,
+    "mae": 0.21354954834446513,
+    "rmse": 0.25974645966169174,
+    "r2": 0.5106274371104493
+  },
+  "january_2026_test": {
+    "mae": 0.24882996913573063,
+    "rmse": 0.3095839454118661,
+    "r2": 0.15843339724310646,
+    "interval_80_coverage": 0.7839381720430108,
+    "interval_80_mean_width": 0.6321497640167378
+  },
+  "baselines": {
+    "baseline_mean": {
+      "mae": 0.29954830241847763,
+      "rmse": 0.34071494886997594,
+      "r2": -0.01932812728006339,
+      "rows": 2976
+    },
+    "baseline_seasonal": {
+      "mae": 0.28987801154757775,
+      "rmse": 0.3377747470099408,
+      "r2": -0.001811437631790369,
+      "rows": 2976
+    },
+    "baseline_persistence": {
+      "mae": 0.3448118279569892,
+      "rmse": 0.45266039966549815,
+      "r2": -0.7991883736753547,
+      "rows": 2976
+    }
+  },
+  "by_turbine_and_horizon": [
+    {
+      "turbine_id": 1,
+      "forecast_day": 1,
+      "rows": 744,
+      "mae": 0.2325341328699476,
+      "rmse": 0.29357716929844035,
+      "r2": 0.24245893846249122
+    },
+    {
+      "turbine_id": 1,
+      "forecast_day": 2,
+      "rows": 744,
+      "mae": 0.25881792553970895,
+      "rmse": 0.318213791519366,
+      "r2": 0.10998030459761154
+    },
+    {
+      "turbine_id": 2,
+      "forecast_day": 1,
+      "rows": 744,
+      "mae": 0.23942461213637745,
+      "rmse": 0.30059315969144323,
+      "r2": 0.20727640961722382
+    },
+    {
+      "turbine_id": 2,
+      "forecast_day": 2,
+      "rows": 744,
+      "mae": 0.2645432059968885,
+      "rmse": 0.32490776833958296,
+      "r2": 0.07384476544121055
+    }
+  ],
+  "versions": {
+    "python": "3.12.9",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "sklearn": "1.9.0",
+    "xgboost": "3.4.1"
+  },
+  "limitations": [
+    "No February targets supplied: February accuracy cannot be measured.",
+    "Timestamp timezone is an explicit assumption until confirmed by the data owner.",
+    "Previous Runs has fixed-lead forecasts; exact operational run IDs are unavailable.",
+    "Availability is a conservative bound with a 6h publication allowance, not an observed publication timestamp.",
+    "Intervals are empirical December residual bands, not a coverage guarantee after production refit.",
+    "Power is normalized. MWh requires turbine rated capacities and confirmation of normalization semantics."
+  ],
+  "production_training_max_valid_time": "2026-01-31 17:00:00+00:00",
+  "calibration_max_valid_time": "2025-12-30 17:00:00+00:00"
+}

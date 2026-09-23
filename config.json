@@ -1,0 +1,10 @@
+{
+  "timezone": "Asia/Almaty",
+  "min_samples_per_hour": 6,
+  "weather_model": "gfs_global",
+  "weather_publication_delay_hours": 6,
+  "turbines": [
+    {"id": 1, "latitude": 43.645150, "longitude": 78.535604, "rated_power_mw": null},
+    {"id": 2, "latitude": 43.643198, "longitude": 78.538828, "rated_power_mw": null}
+  ]
+}
