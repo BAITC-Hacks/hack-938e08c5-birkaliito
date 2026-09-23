@@ -116,10 +116,71 @@ func TestConcurrentIdempotency(t *testing.T) {
 	}
 	close(c.release)
 }
-func TestReplayCancellationPreservesCompletedChildren(t *testing.T){
- c:=&gateClock{make(chan struct{},10),make(chan struct{})};a:=New(Config{Workers:1,QueueCapacity:4,MaxJobs:10,MaxEvents:20,Scenario:"success"},c);defer a.Close();ctx:=context.Background();q:=mockRequest();p,e:=a.CreateReplay(ctx,domain.ReplayRequest{Origins:[]time.Time{q.ForecastOrigin,q.ForecastOrigin.Add(24*time.Hour)},HorizonHours:q.HorizonHours,TurbineIDs:q.TurbineIDs,ModelVersion:q.ModelVersion,DataMode:q.DataMode},domain.Operation{IdempotencyKey:"partial"});if e!=nil{t.Fatal(e)}
- <-c.entered;c.release<-struct{}{};<-c.entered;c.release<-struct{}{};<-c.entered
- if _,e=a.Cancel(ctx,p.JobID);e!=nil{t.Fatal(e)};a.Close();details,e:=a.ReplayDetails(ctx,p.JobID);if e!=nil{t.Fatal(e)};if details.Job.Status!="cancelled"||details.Counters.Completed!=1||details.Counters.Cancelled!=1{t.Fatalf("inconsistent partial replay: %+v",details)}
- children,_:=a.ReplayRuns(ctx,p.JobID);result,e:=a.ForecastResult(ctx,children[0].JobID);if e!=nil||len(result.Points)!=24{t.Fatal("completed child lost",e)}
+func TestReplayCancellationPreservesCompletedChildren(t *testing.T) {
+	c := &gateClock{make(chan struct{}, 10), make(chan struct{})}
+	a := New(Config{Workers: 1, QueueCapacity: 4, MaxJobs: 10, MaxEvents: 20, Scenario: "success"}, c)
+	defer a.Close()
+	ctx := context.Background()
+	q := mockRequest()
+	p, e := a.CreateReplay(ctx, domain.ReplayRequest{Origins: []time.Time{q.ForecastOrigin, q.ForecastOrigin.Add(24 * time.Hour)}, HorizonHours: q.HorizonHours, TurbineIDs: q.TurbineIDs, ModelVersion: q.ModelVersion, DataMode: q.DataMode}, domain.Operation{IdempotencyKey: "partial"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	<-c.entered
+	c.release <- struct{}{}
+	<-c.entered
+	c.release <- struct{}{}
+	<-c.entered
+	if _, e = a.Cancel(ctx, p.JobID); e != nil {
+		t.Fatal(e)
+	}
+	a.Close()
+	details, e := a.ReplayDetails(ctx, p.JobID)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if details.Job.Status != "cancelled" || details.Counters.Completed != 1 || details.Counters.Cancelled != 1 {
+		t.Fatalf("inconsistent partial replay: %+v", details)
+	}
+	children, _ := a.ReplayRuns(ctx, p.JobID)
+	result, e := a.ForecastResult(ctx, children[0].JobID)
+	if e != nil || len(result.Points) != 24 {
+		t.Fatal("completed child lost", e)
+	}
 }
-func TestCompletionCancelRace(t *testing.T){for i:=0;i<20;i++{c:=&gateClock{make(chan struct{},10),make(chan struct{})};a:=New(Config{Workers:1,QueueCapacity:1,MaxJobs:2,MaxEvents:20,Scenario:"success"},c);ctx:=context.Background();j,e:=a.CreateForecast(ctx,mockRequest(),domain.Operation{IdempotencyKey:"race"});if e!=nil{t.Fatal(e)};<-c.entered;c.release<-struct{}{};<-c.entered;done:=make(chan struct{});go func(){_,_=a.Cancel(ctx,j.JobID);close(done)}();close(c.release);<-done;a.Close();j,e=a.GetJob(ctx,j.JobID);if e!=nil{t.Fatal(e)};r,e:=a.ForecastResult(ctx,j.JobID);switch j.Status{case "completed":if e!=nil||len(r.Points)!=24{t.Fatal("completed without result")};case "cancelled":if e==nil{t.Fatal("cancelled published result")};default:t.Fatal(j.Status)}}}
+func TestCompletionCancelRace(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		c := &gateClock{make(chan struct{}, 10), make(chan struct{})}
+		a := New(Config{Workers: 1, QueueCapacity: 1, MaxJobs: 2, MaxEvents: 20, Scenario: "success"}, c)
+		ctx := context.Background()
+		j, e := a.CreateForecast(ctx, mockRequest(), domain.Operation{IdempotencyKey: "race"})
+		if e != nil {
+			t.Fatal(e)
+		}
+		<-c.entered
+		c.release <- struct{}{}
+		<-c.entered
+		done := make(chan struct{})
+		go func() { _, _ = a.Cancel(ctx, j.JobID); close(done) }()
+		close(c.release)
+		<-done
+		a.Close()
+		j, e = a.GetJob(ctx, j.JobID)
+		if e != nil {
+			t.Fatal(e)
+		}
+		r, e := a.ForecastResult(ctx, j.JobID)
+		switch j.Status {
+		case "completed":
+			if e != nil || len(r.Points) != 24 {
+				t.Fatal("completed without result")
+			}
+		case "cancelled":
+			if e == nil {
+				t.Fatal("cancelled published result")
+			}
+		default:
+			t.Fatal(j.Status)
+		}
+	}
+}

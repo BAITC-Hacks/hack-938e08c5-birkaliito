@@ -50,6 +50,22 @@ See [OpenAPI](api/openapi.yaml) for defaults, nullability, all status codes and 
 
 ## Architecture and ownership
 
+```text
+backend/
+  cmd/{api,fixtures,smoke}/
+  internal/
+    app/                  configuration, composition root, lifecycle
+    domain/               entities and invariants
+    application/          ports and five usecase services
+    adapters/             agentmock, agenthttp, configrepo
+    transport/http/       Gin handlers, DTOs, middleware and responses
+  api/                    canonical OpenAPI and embedded offline docs
+  contracts/              TypeScript client and Python contract validator
+  testdata/fixtures/       53 complete response/request examples
+  tests/                  integration, architecture and schema checks
+  docs/                   handoff, protocol, assumptions and verification
+```
+
 `HTTP → incoming usecase interface → application service → consumer-owned ports → mock / Python adapters`. All wiring is in `internal/app.New`; one immutable configuration, logger and HTTP client/transport per App. Domain has no JSON tags or infrastructure imports. Generated DTOs and upstream DTOs map explicitly to domain entities.
 
 In mock, a bounded in-memory adapter owns the queue, job state, results and events. Atomic check/create/enqueue guarantees a repeated key cannot create two jobs. A fixed worker pool performs actual asynchronous simulation. Nothing starts on a GET. Retained completed results are immutable; callers receive copies.
@@ -91,11 +107,14 @@ make smoke
 cd contracts/typescript
 npm ci
 npm run typecheck
+npm test
 ```
 
 `go run ./cmd/fixtures` regenerates complete synthetic response snapshots by executing the real HTTP application. `testdata/fixtures/manifest.json` associates every snapshot with its schema. Tests validate fixture payloads and handler responses with JSON Schema 2020-12, including date-time formats, using the canonical OpenAPI components; this is more than YAML parsing.
 
 `python tools/generate_contract.py` regenerates the OpenAPI, boundary Go types/mappings and TypeScript types from the checked-in contract definition. Run `gofmt -w .` afterwards. No ML or frontend code is generated. Go cross-field invariants supplement schema validation. Contract clarifications are tracked in [CONTRACT_CHANGELOG.md](docs/CONTRACT_CHANGELOG.md).
+
+`python tools/generate_contract.py --check` verifies generation is reproducible. Optional Python integration-boundary checks use `contracts/python/requirements.txt` and `python -m unittest discover -s contracts/python -v`; Python is not required to run mock Go. For Linux race/Make checks on Windows, build the Docker `build` target and execute `sh tools/container-check.sh` in it with the checkout mounted read-only (exact command in the verification record).
 
 ## Docker
 

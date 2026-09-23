@@ -97,8 +97,15 @@ func (s *Service) Weather(ctx context.Context, id string) (domain.WeatherDetails
 	if !c.WeatherDetails {
 		return domain.WeatherDetails{}, domain.Err("FEATURE_NOT_SUPPORTED", "Weather details unsupported")
 	}
-	d,err:=s.gateway.ForecastDetails(ctx,id);if err!=nil{return domain.WeatherDetails{},err}
-	w,err:=s.weather.Weather(ctx,id);if err!=nil{return w,err};return w,domain.ValidateWeather(w,d.Request,id)
+	d, err := s.gateway.ForecastDetails(ctx, id)
+	if err != nil {
+		return domain.WeatherDetails{}, err
+	}
+	w, err := s.weather.Weather(ctx, id)
+	if err != nil {
+		return w, err
+	}
+	return w, domain.ValidateWeather(w, d.Request, id)
 }
 func (s *Service) Explanation(ctx context.Context, id string) (domain.ExplanationDetails, error) {
 	return s.gateway.Explanation(ctx, id)

@@ -3,8 +3,8 @@ package integration
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/hex"
 	"encoding/csv"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,9 +15,67 @@ import (
 	"wind/backend/internal/app"
 	"wind/backend/internal/transport/http/dto"
 )
-func TestFixtureWeatherChecksum(t *testing.T){s,_:=newServer(t,nil);j:=waitJob(t,s,create(t,s,"weather-checksum").JobID);code,b,_:=call(t,s,"GET","/api/forecast-runs/"+j.JobID+"/weather","","");if code!=200{t.Fatal(code)};var value map[string]any;_ = json.Unmarshal(b,&value);artifact,_:=json.Marshal(value["points"]);hash:=sha256.Sum256(artifact);provenance:=value["weather_runs"].([]any)[0].(map[string]any);if provenance["content_sha256"]!=hex.EncodeToString(hash[:]){t.Fatal("checksum not tied to returned fixture artifact")}}
-func TestHTTPUnavailableIsNotMockFallback(t *testing.T){s,v:=newServer(t,func(c *app.Config){c.AgentMode="http";c.AllowFixtures=false;c.PythonBaseURL="http://127.0.0.1:1";c.UpstreamTimeout=100*time.Millisecond});code,b,_:=call(t,s,"GET","/api/meta","","");if code!=200{t.Fatal(code)};if e:=v.Validate("Meta",b);e!=nil{t.Fatal(e)};var meta dto.Meta;_ = json.Unmarshal(b,&meta);if meta.AgentDependency!="unavailable"||meta.Capabilities.Simulated||meta.Capabilities.Forecast{t.Fatal("invented available capability")};body:=strings.ReplaceAll(strings.ReplaceAll(request,"fixture-not-trained","real-model"),`"data_mode":"fixture"`,`"data_mode":"real"`);code,b,_=call(t,s,"POST","/api/forecast-runs",body,"real");if code!=503&&code!=504{t.Fatalf("unavailable Python invented job: %d %s",code,b)};code,_,_=call(t,s,"POST","/api/forecast-runs",request,"fixture-disabled");if code!=403{t.Fatal("fixtures permitted in http mode")}}
 
+func TestFixtureWeatherChecksum(t *testing.T) {
+	s, _ := newServer(t, nil)
+	j := waitJob(t, s, create(t, s, "weather-checksum").JobID)
+	code, b, _ := call(t, s, "GET", "/api/forecast-runs/"+j.JobID+"/weather", "", "")
+	if code != 200 {
+		t.Fatal(code)
+	}
+	var value map[string]any
+	_ = json.Unmarshal(b, &value)
+	artifact, _ := json.Marshal(value["points"])
+	hash := sha256.Sum256(artifact)
+	provenance := value["weather_runs"].([]any)[0].(map[string]any)
+	if provenance["content_sha256"] != hex.EncodeToString(hash[:]) {
+		t.Fatal("checksum not tied to returned fixture artifact")
+	}
+}
+func TestHTTPUnavailableIsNotMockFallback(t *testing.T) {
+	s, v := newServer(t, func(c *app.Config) {
+		c.AgentMode = "http"
+		c.AllowFixtures = false
+		c.PythonBaseURL = "http://127.0.0.1:1"
+		c.UpstreamTimeout = 100 * time.Millisecond
+	})
+	code, b, _ := call(t, s, "GET", "/api/meta", "", "")
+	if code != 200 {
+		t.Fatal(code)
+	}
+	if e := v.Validate("Meta", b); e != nil {
+		t.Fatal(e)
+	}
+	var meta dto.Meta
+	_ = json.Unmarshal(b, &meta)
+	if meta.AgentDependency != "unavailable" || meta.Capabilities.Simulated || meta.Capabilities.Forecast {
+		t.Fatal("invented available capability")
+	}
+	body := strings.ReplaceAll(strings.ReplaceAll(request, "fixture-not-trained", "real-model"), `"data_mode":"fixture"`, `"data_mode":"real"`)
+	code, b, _ = call(t, s, "POST", "/api/forecast-runs", body, "real")
+	if code != 503 && code != 504 {
+		t.Fatalf("unavailable Python invented job: %d %s", code, b)
+	}
+	code, _, _ = call(t, s, "POST", "/api/forecast-runs", request, "fixture-disabled")
+	if code != 403 {
+		t.Fatal("fixtures permitted in http mode")
+	}
+}
+
+func TestExpiredEventCursorBeforeSSEHeaders(t *testing.T) {
+	s, _ := newServer(t, func(c *app.Config) { c.MaxEvents = 2 })
+	j := waitJob(t, s, create(t, s, "retained").JobID)
+	for _, suffix := range []string{"events", "stream"} {
+		code, b, headers := call(t, s, "GET", "/api/jobs/"+j.JobID+"/"+suffix+"?after=0", "", "")
+		if code != 410 || !strings.HasPrefix(headers.Get("Content-Type"), "application/json") {
+			t.Fatalf("%d %s", code, b)
+		}
+	}
+	code, _, _ := call(t, s, "GET", "/api/jobs/"+j.JobID+"/events?after=9999", "", "")
+	if code != 400 {
+		t.Fatal("future cursor accepted")
+	}
+}
 func TestRequestValidation(t *testing.T) {
 	s, _ := newServer(t, nil)
 	cases := []struct {
