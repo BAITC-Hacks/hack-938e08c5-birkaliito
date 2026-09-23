@@ -25,7 +25,7 @@ func (s *Service) Ready(ctx context.Context) error {
 func (s *Service) Meta(ctx context.Context) domain.Meta {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	m := domain.Meta{Service: "wind-forecast", Version: "0.1.0", ContractVersion: "1.1.0", AgentMode: s.mode, DisplayTimezone: s.timezone, SourceTimezoneStatus: "unconfirmed", TargetUnit: "normalized_power", NormalizationStatus: "unconfirmed", AgentDependency: "unavailable", AllowedDataModes: []string{}}
+	m := domain.Meta{Service: "wind-forecast", Version: "0.1.0", ContractVersion: "1.2.0", AgentMode: s.mode, DisplayTimezone: s.timezone, SourceTimezoneStatus: "unconfirmed", TargetUnit: "normalized_power", NormalizationStatus: "unconfirmed", AgentDependency: "unavailable", AllowedDataModes: []string{}}
 	c, e := s.models.Capabilities(ctx)
 	if e == nil {
 		m.Capabilities = c

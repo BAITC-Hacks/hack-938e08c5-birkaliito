@@ -105,7 +105,8 @@ func fixture(q domain.ForecastRequest, id string, created time.Time) (domain.For
 			valid := q.ForecastOrigin.Add(time.Duration(h) * time.Hour)
 			phase := float64(q.ForecastOrigin.Unix()/3600+int64(h))/7 + float64(t)
 			mean := 0.48 + 0.3*math.Sin(phase)
-			r.Points = append(r.Points, domain.ForecastPoint{TurbineID: t, ValidTime: valid, IntervalEnd: valid.Add(time.Hour), LeadHours: h, PowerMean: mean, Q10: mean - 0.14, Q50: mean - 0.01, Q90: mean + 0.16})
+			median := mean - 0.01
+			r.Points = append(r.Points, domain.ForecastPoint{TurbineID: t, ValidTime: valid, IntervalEnd: valid.Add(time.Hour), LeadHours: h, PowerMean: mean, Q10: mean - 0.14, Q50: &median, Q90: mean + 0.16})
 			wind, height, temp := 7+2*math.Sin(phase), 100.0, 5+3*math.Cos(phase)
 			w.Points = append(w.Points, domain.WeatherPoint{TurbineID: t, ValidTime: valid, WindSpeedMS: &wind, WindHeightM: &height, TemperatureC: &temp, IsInterpolated: false})
 		}

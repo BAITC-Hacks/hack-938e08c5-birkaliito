@@ -38,7 +38,7 @@ type ForecastPoint struct {
 	LeadHours   int
 	PowerMean   float64
 	Q10         float64
-	Q50         float64
+	Q50         *float64
 	Q90         float64
 }
 

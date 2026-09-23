@@ -30,6 +30,9 @@ func (s *Service) CheckRequest(ctx context.Context, r domain.ForecastRequest) er
 		return err
 	}
 	if !capabilities.Forecast {
+		if err := s.catalog.Ready(ctx); err != nil {
+			return err
+		}
 		return domain.Err("FEATURE_NOT_SUPPORTED", "Forecast capability unsupported")
 	}
 	models, err := s.catalog.Models(ctx)

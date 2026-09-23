@@ -43,7 +43,7 @@ obj("ReplayRequest", dict(origins=array(ts,minItems=1,maxItems=366,uniqueItems=T
 obj("JobRecord", dict(job_id=ident,job_type=enum("forecast","replay"),status=status,created_at=ts,
     updated_at=ts,stage=string(minLength=1),error_code=nullable(string()),error_message=nullable(string())))
 obj("ForecastPoint",dict(turbine_id=turbine,valid_time=ts,interval_end=ts,lead_hours=integer(minimum=1,maximum=48),
-    power_mean=number(),q10=number(),q50=number(),q90=number()))
+    power_mean=number(),q10=number(),q50=nullable(number()),q90=number()))
 obj("WeatherProvenance",dict(provider=enum("GFS"),run_id=string(minLength=1),initialization_time=ts,
     effective_available_at=ts,availability_basis=enum("observed_publication","conservative_policy"),
     availability_policy_id=nullable(string()),retrieved_at=ts,source_reference=string(minLength=1),
@@ -135,7 +135,7 @@ route("get","/api/replays/{id}/runs",array(ref("JobRecord")))
 route("get","/api/forecast-runs/{id}/export",string(),media="text/csv")
 route("get","/api/replays/{id}/export",string(),params=[param("allow_partial",dict(type="boolean",default=False))],media="text/csv")
 paths["/api/replays/{id}/export"]["get"]["responses"]["200"]["headers"]={k:dict(description="Replay snapshot",schema=string()) for k in ("X-Replay-Export-Status","X-Replay-Total","X-Replay-Completed","X-Replay-Failed","X-Replay-Cancelled","Content-Disposition")}
-doc=dict(openapi="3.1.0",info=dict(title="Wind Forecast API",version="1.1.0",description="All output timestamps UTC. lead=1..H; valid_time=origin+lead hours; interval_end=valid_time+1 hour. Normalization and SCADA timezone unconfirmed. Mock is explicitly fixture and volatile. Whole-hour alignment is checked after UTC normalization. Cross-field invariants are checked by domain validation. Forecast IDs equal job IDs; replay IDs equal job IDs."),paths=paths,components=dict(schemas=S))
+doc=dict(openapi="3.1.0",info=dict(title="Wind Forecast API",version="1.2.0",description="All output timestamps UTC. lead=1..H; valid_time=origin+lead hours; interval_end=valid_time+1 hour. q50 is null when the model has no calibrated median estimate; power_mean remains available. Normalization status is reported by /api/meta. Mock is explicitly fixture and volatile. Whole-hour alignment is checked after UTC normalization. Cross-field invariants are checked by domain validation. Forecast IDs equal job IDs; replay IDs equal job IDs."),paths=paths,components=dict(schemas=S))
 (ROOT/"api").mkdir(parents=True,exist_ok=True)
 write(ROOT/"api/openapi.yaml",json.dumps(doc,ensure_ascii=False,indent=2)+"\n")
 

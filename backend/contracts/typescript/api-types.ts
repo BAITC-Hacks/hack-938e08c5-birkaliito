@@ -31,7 +31,7 @@ export interface ForecastPoint {
   lead_hours: number;
   power_mean: number;
   q10: number;
-  q50: number;
+  q50: number | null;
   q90: number;
 }
 export interface WeatherProvenance {
