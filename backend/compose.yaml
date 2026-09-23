@@ -5,8 +5,23 @@ services:
       - "127.0.0.1:8080:8080"
     environment:
       HTTP_ADDR: ":8080"
-      AGENT_MODE: mock
-      ALLOW_FIXTURES: "true"
-      MOCK_SCENARIO: "${MOCK_SCENARIO:-success}"
+      AGENT_MODE: http
+      ALLOW_FIXTURES: "false"
+      PYTHON_BASE_URL: "http://ml:8000"
+      PYTHON_INTERNAL_TOKEN: "secret_token_123"
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
     stop_grace_period: 15s
+    depends_on:
+      - ml
+      
+  ml:
+    build: ../ml
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      ML_HTTP_ADDR: ":8000"
+      ML_INTERNAL_TOKEN: "secret_token_123"
+    volumes:
+      - ../ml/outputs:/app/outputs
+      - ../ml/data:/app/data
+      - ../ml/artifacts:/app/artifacts
