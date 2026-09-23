@@ -11,6 +11,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--start", default="2024-01-01")
 parser.add_argument("--end", default="2026-03-01")
 parser.add_argument("--output", default="data/weather/archive.csv")
+parser.add_argument("--model", default=None, help="Explicit Open-Meteo model (e.g. icon_global)")
 args = parser.parse_args()
-frame = fetch_archive(read_config(), args.start, args.end, args.output)
+config = read_config()
+if args.model:
+    config["weather_model"] = args.model
+frame = fetch_archive(config, args.start, args.end, args.output)
 print(f"Saved {len(frame)} archived forecast rows to {args.output}")

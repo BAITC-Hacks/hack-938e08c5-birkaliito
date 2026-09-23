@@ -43,6 +43,8 @@ def test_january_ui_uses_earlier_model_and_scores_only_available_actual(app):
     assert response["scored_hours"] == 24
     assert response["hours"] == 48
     assert response["metrics"]["mae"] >= 0
+    errors = [abs(row["prediction"] - row["actual"]) for row in response["rows"] if row["actual"] is not None]
+    assert response["metrics"]["hit_rate_10pp"] == pytest.approx(np.mean(np.asarray(errors) <= .10 + 1e-12))
     assert all(row["turbine_id"] == 2 for row in response["rows"])
     assert all(row["actual"] is None for row in response["rows"][24:])
     # The UI must retain the forecast time guard if a wrong artifact is selected.

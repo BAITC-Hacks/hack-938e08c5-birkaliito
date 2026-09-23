@@ -74,4 +74,18 @@ def make_features(frame, timezone):
     features["wind_shear"] = frame.wind_speed_100m - frame.wind_speed_10m
     features["air_density_proxy"] = frame.surface_pressure * 100 / (287.05 * (frame.temperature_2m + 273.15))
     features["wind_power_proxy"] = features.air_density_proxy * frame.wind_speed_100m.clip(0, 30) ** 3
-    return features.drop(columns="wind_direction_100m")
+    features = features.drop(columns="wind_direction_100m")
+    extra = [f"icon_{name}" for name in VARIABLES]
+    if any(name in frame for name in extra):
+        if any(name not in frame for name in extra):
+            raise ValueError("Incomplete ICON feature schema")
+        for name in extra:
+            features[name] = frame[name].astype(float)
+        radians = np.deg2rad(frame.icon_wind_direction_100m)
+        features["icon_direction_sin"] = np.sin(radians)
+        features["icon_direction_cos"] = np.cos(radians)
+        features["icon_wind_u"] = frame.icon_wind_speed_100m * np.sin(radians)
+        features["icon_wind_v"] = frame.icon_wind_speed_100m * np.cos(radians)
+        features["models_wind_difference"] = frame.wind_speed_100m - frame.icon_wind_speed_100m
+        features = features.drop(columns="icon_wind_direction_100m")
+    return features

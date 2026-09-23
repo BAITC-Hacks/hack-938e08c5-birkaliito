@@ -47,7 +47,7 @@
         <div class="metrics">
           <div class="card metric"><span class="label">Средняя мощность</span><strong id="mean">—</strong><small>по прогнозу, шкала 0–100%</small></div>
           <div class="card metric"><span class="label">Средняя ошибка · MAE</span><strong id="mae">—</strong><small id="coverage">Нет фактических измерений</small></div>
-          <div class="card metric"><span class="label">Качество прогноза · R²</span><strong id="r2">—</strong><small>чем ближе к 1, тем лучше</small></div>
+          <div class="card metric"><span class="label">Попадания в ±10 п.п.</span><strong id="hit-rate">—</strong><small>Доля часов · R²: <span id="r2">—</span></small></div>
         </div>
         <div class="card plot">
           <div class="plot-head"><div><h2 id="result-title">Прогноз мощности</h2><p class="muted" id="issued"></p></div><span class="tag" id="prediction-mode"></span></div>
@@ -64,7 +64,7 @@
       </div>
     </section>
   </div>
-  <footer>Локальный запуск · готовые модели XGBoost · архивные прогнозы GFS · вычисления на вашем компьютере</footer>
+  <footer>Локальный запуск · готовые модели XGBoost · погода: <span id="weather-model">—</span> · вычисления на вашем компьютере</footer>
 </main>
 <script>
   const $ = id => document.getElementById(id);
@@ -131,6 +131,7 @@
     $('mean').textContent=percent(data.mean_prediction);
     $('mae').textContent=data.metrics ? number(data.metrics.mae*100)+' п.п.' : '—';
     $('r2').textContent=data.metrics ? number(data.metrics.r2,3) : '—';
+    $('hit-rate').textContent=data.metrics ? percent(data.metrics.hit_rate_10pp) : '—';
     $('coverage').textContent=data.metrics ? `${data.scored_hours} из ${data.hours} ч с фактом` : 'Нет фактических измерений';
     $('result-title').textContent=data.title;
     const issue=new Date(data.issued_at).toLocaleString('ru-RU',{timeZone:data.timezone,day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
@@ -157,7 +158,7 @@
   $('mode').addEventListener('change',()=>{if(config)changeMode();});
   $('csv-file').addEventListener('change',uploadFile);
   $('download').addEventListener('click',()=>{if(!current)return;const keys=Object.keys(current.rows[0]);const escape=value=>{const str=value==null?'':String(value);return /[",\r\n]/.test(str)?'"'+str.replaceAll('"','""')+'"':str;};const csv='\uFEFF'+[keys.join(','),...current.rows.map(row=>keys.map(key=>escape(row[key])).join(','))].join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=`wind_${current.request.mode}_${current.request.date}_t${current.request.turbine}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
-  (async()=>{try{const response=await fetch('/api/status');if(!response.ok)throw new Error('Сервер недоступен');config=await response.json();$('timezone').textContent=config.timezone;$('connection').textContent='Модель готова · локально';changeMode();await predict();}catch(error){$('connection').textContent='Нет соединения';$('error').textContent=error.message;$('error').hidden=false;$('empty').hidden=true;$('status').textContent='Перезапустите сервер и обновите страницу.';}})();
+  (async()=>{try{const response=await fetch('/api/status');if(!response.ok)throw new Error('Сервер недоступен');config=await response.json();$('timezone').textContent=config.timezone;$('weather-model').textContent=config.weather_model;$('connection').textContent=config.selection_metric==='hit_rate_10pp'?'Модель ±10 п.п. · локально':'Модель MAE · локально';changeMode();await predict();}catch(error){$('connection').textContent='Нет соединения';$('error').textContent=error.message;$('error').hidden=false;$('empty').hidden=true;$('status').textContent='Перезапустите сервер и обновите страницу.';}})();
 </script>
 </body>
 </html>

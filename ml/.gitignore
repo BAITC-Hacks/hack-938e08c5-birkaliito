@@ -6,6 +6,7 @@ data/raw/
 data/weather/
 data/processed/
 artifacts/
-outputs/
+/outputs/*
+!/outputs/README.md
 .env
 *.joblib

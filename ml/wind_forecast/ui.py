@@ -1,6 +1,6 @@
 """Small local UI backed by the existing, frozen forecasting models.
 
-Run from the repository root: python -m wind_forecast.ui
+Run from the ml directory: python -m wind_forecast.ui
 No downloads, fitting, or writes to the trained artifacts are performed.
 """
 
@@ -76,17 +76,22 @@ def validate_request(payload):
 
 
 class ForecastApp:
-    def __init__(self, root=ROOT):
+    def __init__(self, root=ROOT, artifact_dir="artifacts/improved", weather_path=None):
         self.root = Path(root)
-        self.evaluation = joblib.load(self.root / "artifacts/improved/evaluation_model.joblib")
-        self.production = joblib.load(self.root / "artifacts/improved/model.joblib")
+        self.evaluation = joblib.load(self.root / artifact_dir / "evaluation_model.joblib")
+        self.production = joblib.load(self.root / artifact_dir / "model.joblib")
         self.hourly = read_hourly(self.root / "data/processed/hourly.csv")
-        self.weather = read_weather(self.root / "data/weather/archive.csv")
+        archive = weather_path or self.production.get("weather_archive", "data/weather/archive.csv")
+        self.weather = read_weather(self.root / archive)
+        from .weather import validate_weather
+        validate_weather(self.weather, self.production["config"])
         self.lock = threading.Lock()
         self.uploads = OrderedDict()
 
     def status(self):
         return {"ready": True, "timezone": self.production["config"]["timezone"], "modes": MODES,
+                "weather_model": self.production["config"]["weather_model"] + (" + icon_global" if self.production.get("additional_weather_columns") else ""),
+                "selection_metric": self.production.get("selection_metric", "mae"),
                 "max_csv_bytes": MAX_CSV_BYTES}
 
     def upload(self, payload):
@@ -138,7 +143,8 @@ class ForecastApp:
             frame = frame.merge(hourly[["valid_time", "turbine_id", "power"]].rename(columns={"power": "actual"}),
                                 on=["valid_time", "turbine_id"], how="left", validate="many_to_one")
             quality = uploaded["profile"]
-            warnings.append(f"Факт и история взяты из вашего CSV, погода — из локального архива GFS. Полных часов в файле: {quality['valid_hours']}; пропущенных или неполных: {quality['missing_or_incomplete_hours']}; некорректных строк: {quality['invalid_rows']}.")
+            source = self.production["config"]["weather_model"]
+            warnings.append(f"Факт и история взяты из вашего CSV, погода — из локального архива {source}. Полных часов в файле: {quality['valid_hours']}; пропущенных или неполных: {quality['missing_or_incomplete_hours']}; некорректных строк: {quality['invalid_rows']}.")
             if request["history"] and frame.prediction_mode.eq("weather_only").any():
                 warnings.append("Свежей истории недостаточно: для части часов используется только погода.")
         else:
@@ -169,7 +175,7 @@ class ForecastApp:
             for column in details:
                 frame[column] = details[column]
             frame[["lower_80", "upper_80"]] = float("nan")
-            warnings.append("Прогноз по погоде из вашего CSV, без истории. Источник и доступность погоды не подтверждены; интервалы, откалиброванные на архиве GFS, здесь не показаны.")
+            warnings.append("Прогноз по погоде из вашего CSV, без истории. Источник и доступность погоды не подтверждены; интервалы, откалиброванные на архивной погоде, здесь не показаны.")
             if len(frame) < request["horizon"]:
                 warnings.append(f"В файле осталось {len(frame)} ч: рассчитаны все доступные строки без заполнения отсутствующей погоды.")
         if request["date"] < "2026-02-01":
@@ -227,6 +233,8 @@ class ForecastApp:
         if len(matched) == 1:
             error = float(matched.absolute_error.iloc[0])
             metrics = {"mae": error, "rmse": error, "r2": None}
+        if metrics is not None:
+            metrics["hit_rate_10pp"] = float((matched.absolute_error <= .10 + 1e-12).mean())
         if mode in ("check", "csv") and len(matched) != len(frame):
             warnings.append(f"Полные фактические измерения есть для {len(matched)} из {len(frame)} часов. Метрики рассчитаны только по ним.")
         columns = ["time", "valid_time", "issued_at", "turbine_id", "horizon_hours", "prediction",
@@ -294,9 +302,11 @@ def make_handler(app):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--artifact-dir", default="artifacts/improved")
+    parser.add_argument("--weather", default=None)
     args = parser.parse_args()
     try:
-        app = ForecastApp()
+        app = ForecastApp(artifact_dir=args.artifact_dir, weather_path=args.weather)
     except FileNotFoundError as exc:
         parser.error(f"Нет подготовленных данных или модели: {exc.filename}. Сначала выполните prepare, fetch-weather и improve.")
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(app))

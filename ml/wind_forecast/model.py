@@ -41,6 +41,11 @@ def interval_offsets(frame, predictions):
 
 
 def predict_details(bundle, frame, hourly=None):
+    if bundle.get("additional_weather_columns"):
+        frame = frame.copy()
+        for column in bundle["additional_weather_columns"]:
+            if column not in frame:
+                frame[column] = np.nan
     features = make_features(frame, bundle["config"]["timezone"])
     if list(features.columns) != bundle["features"]:
         raise ValueError("Feature schema does not match the trained model")

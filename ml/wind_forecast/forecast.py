@@ -11,6 +11,9 @@ from .model import predict_details
 
 def forecast(bundle, weather, issued_at, horizon=48, hourly=None):
     config = bundle["config"]
+    missing = set(bundle.get("additional_weather_columns", [])) - set(weather)
+    if missing:
+        raise ValueError("Model requires additional ICON forecast columns; use its weather_archive")
     origin = as_utc(issued_at, config["timezone"])
     for key in ("training_max_valid_time", "calibration_max_valid_time"):
         if as_utc(bundle[key], config["timezone"]) + pd.Timedelta(hours=1) > origin:
