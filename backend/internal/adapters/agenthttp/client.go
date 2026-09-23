@@ -122,6 +122,10 @@ func (a *Adapter) once(ctx context.Context, method, path string, data []byte, op
 	defer resp.Body.Close()
 	b, e := io.ReadAll(io.LimitReader(resp.Body, a.cfg.ResponseLimit+1))
 	if e != nil {
+		var ne net.Error
+		if errors.Is(e, context.DeadlineExceeded) || errors.As(e, &ne) && ne.Timeout() {
+			return nil, domain.Wrap("UPSTREAM_TIMEOUT", "Python response body timed out", e)
+		}
 		return nil, domain.Wrap("DEPENDENCY_UNAVAILABLE", "Python response interrupted", e)
 	}
 	if int64(len(b)) > a.cfg.ResponseLimit {
@@ -377,7 +381,9 @@ func (a *Adapter) ReplayDetails(ctx context.Context, id string) (domain.ReplayDe
 		return domain.ReplayDetails{}, e
 	}
 	d := ReplayDetailsToDomain(v)
-	if _,e=domain.NormalizeReplay(d.Request);e!=nil{return d,domain.Violation("Invalid replay request metadata")}
+	if _, e = domain.NormalizeReplay(d.Request); e != nil {
+		return d, domain.Violation("Invalid replay request metadata")
+	}
 	c := d.Counters
 	if d.Job.JobID != id || d.Job.JobType != "replay" || d.Request.DataMode != "real" || c.Total != len(d.Request.Origins) || c.Total != c.Queued+c.Running+c.Completed+c.Failed+c.Cancelled || d.HasFailures != (c.Failed > 0) {
 		return d, domain.Violation("Invalid replay metadata or counters")
@@ -450,7 +456,9 @@ func validateEvaluation(r domain.EvaluationReport) error {
 	if r.DataMode != "real" || r.PeriodStart.IsZero() || r.PeriodEnd.IsZero() || r.TrainingDataAvailableThrough.IsZero() || !r.PeriodStart.Before(r.PeriodEnd) || r.TrainingDataAvailableThrough.After(r.PeriodStart) {
 		return domain.Violation("Invalid evaluation provenance")
 	}
-	if r.Status=="unavailable"&&r.NObservations!=nil{return domain.Violation("Unavailable observation count must be null")}
+	if r.Status == "unavailable" && r.NObservations != nil {
+		return domain.Violation("Unavailable observation count must be null")
+	}
 	for _, m := range r.Metrics {
 		if m.LeadFrom > m.LeadTo {
 			return domain.Violation("Invalid metric horizon")

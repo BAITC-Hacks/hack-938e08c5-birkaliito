@@ -1,8 +1,0 @@
-{
-  "data_mode": "fixture",
-  "model_version": "fixture-not-trained",
-  "origins": [
-    "2026-01-31T18:00:00Z",
-    "2026-02-01T18:00:00Z"
-  ]
-}

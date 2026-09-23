@@ -1,31 +1,18 @@
-# hack-938e08c5-birkaliito
+# Прогнозирование выработки ветроэнергии
 
-Hackathon team repository for Birkaliito.
+В папке [backend](backend/README.md) находится Go/Gin API. Сейчас он запускается с синтетическим прогнозом (`fixture`) для подключения фронтенда. Обученной ML-модели и Python-сервиса в этом репозитории пока нет.
 
-## Backend
+## Запуск на любом ноутбуке
 
-Go/Gin Wind Forecast backend: [backend/README.md](backend/README.md).
+Нужен Docker с поддержкой Compose. Из корня репозитория выполните две команды:
 
-Start from `backend/` with `go run ./cmd/api`, then `go run ./cmd/smoke` in a
-second terminal. API docs: `http://127.0.0.1:8080/docs`. Default mode is
-explicitly synthetic fixture simulation; Python integration is configured
-separately.
-
-Frontend integration package: [handoff](backend/docs/FRONTEND_HANDOFF.md),
-[OpenAPI](backend/api/openapi.yaml), and
-[TypeScript client](backend/contracts/typescript/client.ts).
-
-## Interactive AURA design
-
-The responsive prototype covers forecasts, hourly analytics, energy scenarios,
-history, replay, quality, agent sources, source data, and the forecast passport.
-
-```bash
-cd design
-go run main.go
+```sh
+cd backend
+docker compose up --build
 ```
 
-Open `http://localhost:4173/#forecast`. Run the presentation-model tests with
-`node --test design/model.test.mjs` from the repository root.
+API: <http://127.0.0.1:8080>, документация: <http://127.0.0.1:8080/docs>. Первый запуск загружает зависимости и требует интернет. Остановка — `Ctrl+C`; данные mock хранятся в памяти и после остановки исчезают.
 
-See [the UX and design-system specification](design/DESIGN.md).
+Контракт для фронтенда: [OpenAPI](backend/api/openapi.yaml), [TypeScript-типы](backend/contracts/typescript/api-types.ts), [клиент](backend/contracts/typescript/client.ts), [порядок подключения](backend/docs/FRONTEND_HANDOFF.md). Подробности, реальные возможности и ограничения — в [README backend](backend/README.md).
+
+Когда появятся фронтенд и ML-сервис, их можно добавить в один Compose-проект. Текущий Compose запускает только Go API: обещать запуск всей системы одной командой пока рано.

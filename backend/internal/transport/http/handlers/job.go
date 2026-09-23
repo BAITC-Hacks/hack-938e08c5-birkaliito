@@ -139,39 +139,81 @@ func (h *JobHandler) Stream(c *gin.Context) {
 		}
 		return rc.Flush() == nil
 	}
-	ticker := time.NewTicker(h.poll)
-	defer ticker.Stop()
+	for _, ev := range events {
+		if !write("agent_event", dto.AgentEventFromDomain(ev), ev.EventID) {
+			return
+		}
+		after = ev.EventID
+	}
+	if domain.Terminal(j.Status) && len(events) < limit {
+		write("stream_end", dto.StreamEnd{JobID: id, Status: j.Status}, 0)
+		return
+	}
+	// A single bounded poller per admitted stream keeps heartbeats independent of slow upstream reads.
+	// No Gin context crosses the goroutine boundary; the one-page channel bounds memory/backpressure.
+	type batch struct {
+		events   []domain.AgentEvent
+		status   string
+		terminal bool
+		err      error
+	}
+	batches := make(chan batch, 1)
+	done := make(chan struct{})
+	go func(cursor int64) {
+		defer close(done)
+		ticker := time.NewTicker(h.poll)
+		defer ticker.Stop()
+		for {
+			state, err := h.service.Get(ctx, id)
+			var page []domain.AgentEvent
+			if err == nil {
+				page, err = h.service.Events(ctx, id, cursor, limit)
+			}
+			terminal := err == nil && domain.Terminal(state.Status) && len(page) < limit
+			select {
+			case <-ctx.Done():
+				return
+			case batches <- batch{page, state.Status, terminal, err}:
+			}
+			if err != nil || terminal {
+				return
+			}
+			if len(page) > 0 {
+				cursor = page[len(page)-1].EventID
+			}
+			if len(page) == limit {
+				continue
+			}
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+			}
+		}
+	}(after)
+	defer func() { cancel(); <-done }()
 	heart := time.NewTicker(h.heartbeat)
 	defer heart.Stop()
 	for {
-		for _, ev := range events {
-			if !write("agent_event", dto.AgentEventFromDomain(ev), ev.EventID) {
-				return
-			}
-			after = ev.EventID
-		}
-		// Read terminal status before a fresh tail read. The immutable terminal log cannot grow afterwards.
-		j, e = h.service.Get(ctx, id)
-		if e == nil {
-			events, e = h.service.Events(ctx, id, after, limit)
-		}
-		if e != nil {
-			if ctx.Err() == nil {
-				write("stream_error", dto.ApiError{Code: "STREAM_UNAVAILABLE", Message: "Event stream interrupted; reconnect or poll", RequestID: ptr(c.GetString("request_id"))}, 0)
-			}
-			return
-		}
-		if len(events) > 0 {
-			continue
-		}
-		if domain.Terminal(j.Status) {
-			write("stream_end", dto.StreamEnd{JobID: id, Status: j.Status}, 0)
-			return
-		}
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
+		case batch := <-batches:
+			if batch.err != nil {
+				if ctx.Err() == nil {
+					write("stream_error", dto.ApiError{Code: "STREAM_UNAVAILABLE", Message: "Event stream interrupted; reconnect or poll", RequestID: ptr(c.GetString("request_id"))}, 0)
+				}
+				return
+			}
+			for _, ev := range batch.events {
+				if !write("agent_event", dto.AgentEventFromDomain(ev), ev.EventID) {
+					return
+				}
+			}
+			if batch.terminal {
+				write("stream_end", dto.StreamEnd{JobID: id, Status: batch.status}, 0)
+				return
+			}
 		case <-heart.C:
 			_ = rc.SetWriteDeadline(time.Now().Add(h.writeTimeout))
 			if _, e = fmt.Fprint(c.Writer, ": heartbeat\n\n"); e != nil {

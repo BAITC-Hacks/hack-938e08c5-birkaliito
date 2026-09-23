@@ -28,6 +28,8 @@ The mock enforces job state transitions under the same mutex used to publish res
 
 Worker count, pending queue, retained jobs, retained events and simultaneous SSE connections are bounded. Workers never block on subscribers. SSE reads bounded event pages and applies write deadlines. The terminal status is read before draining the final log tail, avoiding missed completion events. Request disconnect closes polling only.
 
+Each admitted SSE connection has one cancellable polling goroutine and a channel holding at most one event page. The HTTP writer sends heartbeats independently of slow dependency reads. The configured stream limit bounds those goroutines; disconnect/shutdown cancels and joins the poller. No Gin context enters the poller.
+
 Shutdown cancels local stream contexts and simulator workers, closes idle outbound connections and drains the HTTP server. It sends no cancellation to Python. Mock is disposable and loses state on restart. Python production deployment needs a persistent transactionally idempotent job registry, durable queue acceptance, append-only monotonic events, immutable results/manifests, cancellation flags and restartable checkpoints. Those responsibilities are intentionally not duplicated in Go.
 
-Architecture tests parse imports to enforce the direction of dependencies. Usecase tests use fake ports; handler tests use a fake usecase; adapter tests use local `httptest.Server`; integration tests start separate full Apps.
+The import direction was reviewed after cleanup: domain has no infrastructure imports; application depends on domain and its ports; handlers depend on use case interfaces; adapters implement ports; `app.New` wires the concrete dependencies. The separate test suite was removed at the user's request, so this boundary currently has no automated regression check.

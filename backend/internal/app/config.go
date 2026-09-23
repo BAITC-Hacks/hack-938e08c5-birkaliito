@@ -24,7 +24,7 @@ type Config struct {
 }
 
 func DefaultConfig() Config {
-	return Config{Env: "development", HTTPAddr: "127.0.0.1:8080", AgentMode: "mock", AllowFixtures: true, PythonBaseURL: "http://localhost:8000", DisplayTimezone: "Asia/Almaty", MockScenario: "success", CORS: []string{"http://localhost:5173"}, Workers: 2, QueueCapacity: 64, MaxJobs: 500, MaxEvents: 2000, MaxStreams: 64, BodyLimit: 1 << 20, ResponseLimit: 8 << 20, UpstreamTimeout: 20 * time.Second, ShutdownTimeout: 10 * time.Second, StepDelay: 100 * time.Millisecond, Heartbeat: 15 * time.Second, PollInterval: time.Second, StreamWriteTimeout: 10 * time.Second, Turbines: []domain.Turbine{{ID: 1, Name: "Turbine 1", Latitude: 43.645150, Longitude: 78.535604, MetadataStatus: "configured_unverified"}, {ID: 2, Name: "Turbine 2", Latitude: 43.643198, Longitude: 78.538828, MetadataStatus: "configured_unverified"}}}
+	return Config{Env: "development", HTTPAddr: "127.0.0.1:8080", AgentMode: "mock", AllowFixtures: true, PythonBaseURL: "http://localhost:8000", DisplayTimezone: "Asia/Almaty", MockScenario: "success", CORS: []string{"http://localhost:5173", "http://127.0.0.1:5173"}, Workers: 2, QueueCapacity: 64, MaxJobs: 500, MaxEvents: 2000, MaxStreams: 64, BodyLimit: 1 << 20, ResponseLimit: 8 << 20, UpstreamTimeout: 20 * time.Second, ShutdownTimeout: 10 * time.Second, StepDelay: 100 * time.Millisecond, Heartbeat: 15 * time.Second, PollInterval: time.Second, StreamWriteTimeout: 10 * time.Second, Turbines: []domain.Turbine{{ID: 1, Name: "Turbine 1", Latitude: 43.645150, Longitude: 78.535604, MetadataStatus: "configured_unverified"}, {ID: 2, Name: "Turbine 2", Latitude: 43.643198, Longitude: 78.538828, MetadataStatus: "configured_unverified"}}}
 }
 func LoadConfig() (Config, error) {
 	c := DefaultConfig()
